@@ -144,15 +144,9 @@ const Landing = () => {
       <section className="relative pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Build Better Habits
-              <span
-                className={`block ${
-                  isDarkMode ? "text-indigo-400" : "text-indigo-600"
-                }`}
-              >
-                Together
-              </span>
+            <h1 className="text-[75px] font-thin tracking-wide">
+              Build Better Habits <br />
+              <span className="text-indigo-400">Together</span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto">
               Transform your daily routines with HabitBuddy. Track habits,

@@ -357,12 +357,13 @@ const Login = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                {/* Full-width Google button */}
+                <div className="w-full">
                   <button
                     type="button"
                     onClick={(e) => handleSubmit(e, "google")}
                     disabled={loading !== ""}
-                    className={`flex items-center justify-center px-4 py-2 rounded-lg transition-colors duration-300 ${
+                    className={`w-full flex items-center justify-center px-4 py-2 rounded-lg transition-colors duration-300 ${
                       isDarkMode
                         ? "bg-gray-700 hover:bg-gray-600 text-white"
                         : "bg-white hover:bg-gray-50 text-gray-700"
@@ -375,28 +376,7 @@ const Login = () => {
                     ) : (
                       <>
                         <Chrome className="w-5 h-5 text-red-500 mr-2" />
-                        Google
-                      </>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => handleSubmit(e, "facebook")}
-                    disabled={loading !== ""}
-                    className={`flex items-center justify-center px-4 py-2 rounded-lg transition-colors duration-300 ${
-                      isDarkMode
-                        ? "bg-gray-700 hover:bg-gray-600 text-white"
-                        : "bg-white hover:bg-gray-50 text-gray-700"
-                    } border ${
-                      isDarkMode ? "border-gray-600" : "border-gray-300"
-                    } shadow-sm text-sm font-medium`}
-                  >
-                    {loading === "facebook" ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        <Facebook className="w-5 h-5 text-blue-600 mr-2" />
-                        Facebook
+                        Continue with Google
                       </>
                     )}
                   </button>
