@@ -22,6 +22,11 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isFormVisible, setIsFormVisible] = useState(true);
+  const [email, setEmail] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [username, setUsername] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
@@ -40,8 +45,62 @@ const Login = () => {
   const handleSubmit = async (e, type) => {
     e.preventDefault();
     setLoading(type);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setLoading("");
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      let endpoint = "";
+      let body = {};
+
+      if (type === "signup") {
+        // Signup validation
+        if (password !== confirmPassword) {
+          throw new Error("Passwords do not match");
+        }
+
+        endpoint = "http://localhost:3000/User/Signup";
+        body = {
+          email,
+          password,
+          confirmPassword,
+        };
+      } else if (type === "login") {
+        endpoint = "http://localhost:3000/User/Login";
+        body = {
+          email: username, // Using username field for login identifier
+          password,
+        };
+      }
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Request failed");
+      }
+
+      // Handle successful responses
+      if (type === "signup") {
+        setSuccessMessage("Signup successful! Please login.");
+        handleFormSwitch("login");
+      } else if (type === "login") {
+        setSuccessMessage("Login successful! Redirecting...");
+        // Here you would typically store the token and redirect
+        // localStorage.setItem("token", data.token);
+        // navigate("/dashboard");
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading("");
+    }
   };
 
   const handleFormSwitch = (form) => {
