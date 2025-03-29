@@ -25,7 +25,6 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [username, setUsername] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
@@ -67,7 +66,7 @@ const Login = () => {
       } else if (type === "login") {
         endpoint = "http://localhost:3000/User/Login";
         body = {
-          email: username, // Using username field for login identifier
+          email, // email as login
           password,
         };
       }
@@ -108,6 +107,12 @@ const Login = () => {
     setTimeout(() => {
       setActiveForm(form);
       setIsFormVisible(true);
+      // Clear form fields and messages when switching
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setError("");
+      setSuccessMessage("");
     }, 300);
   };
   const toggleDarkMode = () => {
@@ -202,7 +207,7 @@ const Login = () => {
                       isDarkMode ? "text-gray-200" : "text-gray-700"
                     } mb-1`}
                   >
-                    Email / Username
+                    Email
                   </label>
                   <div className="relative">
                     <Mail
@@ -211,14 +216,16 @@ const Login = () => {
                       } w-5 h-5`}
                     />
                     <input
-                      type="text"
+                      type="email"
                       required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className={`w-full pl-10 pr-4 py-2 rounded-lg transition-colors duration-300 ${
                         isDarkMode
                           ? "bg-gray-700 border-gray-600 text-white focus:border-indigo-500"
                           : "bg-white border-gray-300 focus:border-indigo-500"
                       } focus:ring-2 focus:ring-indigo-500`}
-                      placeholder="Enter your Email or Username"
+                      placeholder="Enter your email"
                     />
                   </div>
                 </div>
@@ -240,6 +247,8 @@ const Login = () => {
                     <input
                       type={showPassword ? "text" : "password"}
                       required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className={`w-full pl-10 pr-10 py-2 rounded-lg transition-colors duration-300 ${
                         isDarkMode
                           ? "bg-gray-700 border-gray-600 text-white focus:border-indigo-500"
@@ -310,6 +319,22 @@ const Login = () => {
                     "Login"
                   )}
                 </button>
+
+                {(error || successMessage) && (
+                  <div
+                    className={`mt-4 p-3 rounded-lg ${
+                      error
+                        ? isDarkMode
+                          ? "bg-red-900/30 text-red-300"
+                          : "bg-red-100 text-red-700"
+                        : isDarkMode
+                        ? "bg-green-900/30 text-green-300"
+                        : "bg-green-100 text-green-700"
+                    }`}
+                  >
+                    {error || successMessage}
+                  </div>
+                )}
 
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
@@ -401,6 +426,8 @@ const Login = () => {
                     <input
                       type="email"
                       required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className={`w-full pl-10 pr-4 py-2 rounded-lg transition-colors duration-300 ${
                         isDarkMode
                           ? "bg-gray-700 border-gray-600 text-white focus:border-indigo-500"
@@ -551,6 +578,8 @@ const Login = () => {
                     <input
                       type={showConfirmPassword ? "text" : "password"}
                       required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       className={`w-full pl-10 pr-10 py-2 rounded-lg transition-colors duration-300 ${
                         isDarkMode
                           ? "bg-gray-700 border-gray-600 text-white focus:border-indigo-500"
@@ -593,6 +622,22 @@ const Login = () => {
                     "Sign Up"
                   )}
                 </button>
+
+                {(error || successMessage) && (
+                  <div
+                    className={`mt-4 p-3 rounded-lg ${
+                      error
+                        ? isDarkMode
+                          ? "bg-red-900/30 text-red-300"
+                          : "bg-red-100 text-red-700"
+                        : isDarkMode
+                        ? "bg-green-900/30 text-green-300"
+                        : "bg-green-100 text-green-700"
+                    }`}
+                  >
+                    {error || successMessage}
+                  </div>
+                )}
               </form>
             )}
           </div>
