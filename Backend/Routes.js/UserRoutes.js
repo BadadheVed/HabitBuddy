@@ -3,14 +3,19 @@ const bcrypt = require('bcrypt')
 const { jwtAuth, generateToken } = require('./jwt')
 const router = express.Router();
 const User = require('../Models/User')
-router.use(express.json()) // error should've happended here
+const cors = require('cors')
+router.use(express.json())
 router.get('/all', async (req, res) => {
     let user = await User.find();
     let users = [];
 
     res.send(user)
 });
-router.post('/Signup', async (req, res) => {
+router.use(cors({
+    origin: 'http://localhost:5173', // Your frontend URL
+    credentials: true
+}));
+router.post('/Signup', cors(), async (req, res) => {
     try {
         let { email, password } = req.body;
         const existinguser = await User.findOne({ email }) // check if existing user is present
@@ -31,7 +36,7 @@ router.post('/Signup', async (req, res) => {
     }
 })
 
-router.post('/Login', async (req, res) => {
+router.post('/Login', cors(), async (req, res) => {
     try {
         let { email, password } = req.body;
         const user = await User.findOne({ email: email })
