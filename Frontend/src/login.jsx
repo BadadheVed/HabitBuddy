@@ -94,7 +94,7 @@ const Login = () => {
       } else if (type === "login") {
         setSuccessMessage("Login successful! Redirecting...");
         localStorage.setItem("token", data.token);
-        navigate(`/dashboard`);
+        navigate(`/dashboard/${data.email}`);
       }
     } catch (err) {
       setError(err.message);

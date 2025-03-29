@@ -13,12 +13,14 @@ import {
   Sun,
   ArrowRight,
 } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 const dashboard = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [hasNotification] = useState(true);
-  const username = "John"; // This would come from your auth context
+  const { email } = useParams();
+  const username = email; // This would come from your auth context
 
   useEffect(() => {
     const timer = setTimeout(() => {
