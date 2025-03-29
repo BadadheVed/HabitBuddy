@@ -13,6 +13,7 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [activeForm, setActiveForm] = useState("login");
@@ -26,6 +27,7 @@ const Login = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
@@ -91,9 +93,8 @@ const Login = () => {
         handleFormSwitch("login");
       } else if (type === "login") {
         setSuccessMessage("Login successful! Redirecting...");
-        // Here you would typically store the token and redirect
-        // localStorage.setItem("token", data.token);
-        // navigate("/dashboard");
+        localStorage.setItem("token", data.token);
+        navigate(`/dashboard`);
       }
     } catch (err) {
       setError(err.message);
@@ -275,23 +276,6 @@ const Login = () => {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      className={`rounded transition-colors duration-300 ${
-                        isDarkMode
-                          ? "bg-gray-700 border-gray-600"
-                          : "border-gray-300"
-                      } text-indigo-600 focus:ring-indigo-500`}
-                    />
-                    <span
-                      className={`ml-2 text-sm ${
-                        isDarkMode ? "text-gray-300" : "text-gray-600"
-                      }`}
-                    >
-                      Remember me
-                    </span>
-                  </label>
                   <a
                     href="#"
                     className={`text-sm ${

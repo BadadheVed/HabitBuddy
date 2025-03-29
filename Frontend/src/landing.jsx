@@ -140,7 +140,6 @@ const Landing = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
