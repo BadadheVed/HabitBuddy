@@ -4,10 +4,9 @@ mongoose.connect('mongodb://127.0.0.1/HabitBuddy').then(() => {
     console.log("Connection Established");
 }).catch(err => console.log("Error is", err.message))
 const userSchema = new mongoose.Schema({
-    email: { type: String, required: true, unique: true }, // this can be email or username 
-    password: { type: String, required: true },
-    username: { type: String, unique: true, sparse: true },
-
+    name: { type: String, sparse: true, trim: true },
+    email: { type: String, required: true, unique: true }, // this can be email or  
+    password: { type: String, required: true }
 
 }, { timestamps: true })
 

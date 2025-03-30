@@ -13,13 +13,16 @@ import {
   Sun,
   ArrowRight,
 } from "lucide-react";
+
 import jwtDecode from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [hasNotification] = useState(true);
-  const username = "John"; // This would come from your auth context
+  const [name, setName] = useState("User"); // This would come from your auth context
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check for token in localStorage
@@ -31,10 +34,19 @@ const Dashboard = () => {
 
     try {
       const decoded = jwtDecode(token);
-      setUsername(decoded.name || "User"); // Use "name" field from token, fallback to "User"
+      console.log("Decoded Token:", decoded);
+
+      const userName =
+        decoded.name || decoded.user?.name || decoded.username || "User";
+
+      setName(userName);
+
+      if (window.location.pathname !== `/dashboard/${userName}`) {
+        navigate(`/dashboard/${userName}`);
+      }
     } catch (error) {
       console.error("Invalid token:", error);
-      localStorage.removeItem("token"); // Remove invalid token
+      localStorage.removeItem("token");
       navigate("/login");
     }
   }, [navigate]);
@@ -79,7 +91,7 @@ const Dashboard = () => {
                   darkMode ? "text-gray-300" : "text-gray-600"
                 }`}
               >
-                Hi! {username}
+                Hi! {name}
               </span>
             </div>
 
@@ -134,7 +146,7 @@ const Dashboard = () => {
               darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"
             } rounded-lg shadow-lg p-4 flex items-center`}
           >
-            <span className="text-lg">Hi, {username}! 👋</span>
+            <span className="text-lg">Hi, {name}! 👋</span>
             <button
               onClick={() => setShowWelcome(false)}
               className="ml-4 p-1 hover:bg-gray-200 rounded-full"
