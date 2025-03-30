@@ -8,7 +8,6 @@ import {
   AlertCircle,
   Check,
   Loader2,
-  Facebook,
   Chrome,
   Sun,
   Moon,
@@ -25,6 +24,7 @@ const Login = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isFormVisible, setIsFormVisible] = useState(true);
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -35,6 +35,7 @@ const Login = () => {
       setIsDarkMode(true);
     }
   }, []);
+
   const getPasswordStrength = (pass) => {
     let strength = 0;
     if (pass.length >= 8) strength++;
@@ -55,14 +56,13 @@ const Login = () => {
       let body = {};
 
       if (type === "signup") {
-        // Signup validation
         if (password !== confirmPassword) {
           throw new Error("Passwords do not match");
         }
 
         endpoint = "http://localhost:3000/User/Signup";
         body = {
-          username,
+          name,
           email,
           password,
           confirmPassword,
@@ -70,7 +70,7 @@ const Login = () => {
       } else if (type === "login") {
         endpoint = "http://localhost:3000/User/Login";
         body = {
-          email, // email as login
+          email,
           password,
         };
       }
@@ -89,7 +89,6 @@ const Login = () => {
         throw new Error(data.message || "Request failed");
       }
 
-      // Handle successful responses
       if (type === "signup") {
         setSuccessMessage("Signup successful! Please login.");
         handleFormSwitch("login");
@@ -97,7 +96,7 @@ const Login = () => {
         setSuccessMessage("Login successful! Redirecting...");
         localStorage.setItem("token", data.token);
         const decoded = jwtDecode(data.token);
-        navigate(`/dashboard/${decoded.username}`);
+        navigate(`/dashboard/${decoded.name}`);
       }
     } catch (err) {
       setError(err.message);
@@ -111,17 +110,19 @@ const Login = () => {
     setTimeout(() => {
       setActiveForm(form);
       setIsFormVisible(true);
-      // Clear form fields and messages when switching
       setEmail("");
+      setName("");
       setPassword("");
       setConfirmPassword("");
       setError("");
       setSuccessMessage("");
     }, 300);
   };
+
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
+
   return (
     <div
       className={`min-h-screen transition-colors duration-300 ${
@@ -344,7 +345,6 @@ const Login = () => {
                   </div>
                 </div>
 
-                {/* Full-width Google button */}
                 <div className="w-full">
                   <button
                     type="button"
@@ -393,17 +393,18 @@ const Login = () => {
                     <input
                       type="text"
                       required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       className={`w-full pl-10 pr-4 py-2 rounded-lg transition-colors duration-300 ${
                         isDarkMode
                           ? "bg-gray-700 border-gray-600 text-white focus:border-indigo-500"
                           : "bg-white border-gray-300 focus:border-indigo-500"
                       } focus:ring-2 focus:ring-indigo-500`}
-                      placeholder=" Ex:- John Doe"
+                      placeholder="Ex: John Doe"
                     />
                   </div>
                 </div>
+
                 <div>
                   <label
                     className={`block text-sm font-medium ${
