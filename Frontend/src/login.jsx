@@ -14,6 +14,7 @@ import {
   Moon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import jwtDecode from "jwt-decode";
 
 const Login = () => {
   const [activeForm, setActiveForm] = useState("login");
@@ -61,6 +62,7 @@ const Login = () => {
 
         endpoint = "http://localhost:3000/User/Signup";
         body = {
+          username,
           email,
           password,
           confirmPassword,
@@ -94,7 +96,8 @@ const Login = () => {
       } else if (type === "login") {
         setSuccessMessage("Login successful! Redirecting...");
         localStorage.setItem("token", data.token);
-        navigate(`/dashboard/${data.email}`);
+        const decoded = jwtDecode(data.token);
+        navigate(`/dashboard/${decoded.username}`);
       }
     } catch (err) {
       setError(err.message);
@@ -373,6 +376,34 @@ const Login = () => {
                 onSubmit={(e) => handleSubmit(e, "signup")}
                 className="space-y-4"
               >
+                <div>
+                  <label
+                    className={`block text-sm font-medium ${
+                      isDarkMode ? "text-gray-200" : "text-gray-700"
+                    } mb-1`}
+                  >
+                    Name
+                  </label>
+                  <div className="relative">
+                    <User
+                      className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+                        isDarkMode ? "text-gray-400" : "text-gray-400"
+                      } w-5 h-5`}
+                    />
+                    <input
+                      type="text"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={`w-full pl-10 pr-4 py-2 rounded-lg transition-colors duration-300 ${
+                        isDarkMode
+                          ? "bg-gray-700 border-gray-600 text-white focus:border-indigo-500"
+                          : "bg-white border-gray-300 focus:border-indigo-500"
+                      } focus:ring-2 focus:ring-indigo-500`}
+                      placeholder=" Ex:- John Doe"
+                    />
+                  </div>
+                </div>
                 <div>
                   <label
                     className={`block text-sm font-medium ${

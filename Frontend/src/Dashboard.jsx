@@ -13,13 +13,31 @@ import {
   Sun,
   ArrowRight,
 } from "lucide-react";
+import jwtDecode from "jwt-decode";
 
-const App = () => {
+const Dashboard = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [hasNotification] = useState(true);
   const username = "John"; // This would come from your auth context
 
+  useEffect(() => {
+    // Check for token in localStorage
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login"); // Redirect to login if no token
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      setUsername(decoded.name || "User"); // Use "name" field from token, fallback to "User"
+    } catch (error) {
+      console.error("Invalid token:", error);
+      localStorage.removeItem("token"); // Remove invalid token
+      navigate("/login");
+    }
+  }, [navigate]);
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowWelcome(false);
@@ -264,4 +282,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default Dashboard;
