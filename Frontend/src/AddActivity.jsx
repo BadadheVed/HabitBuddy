@@ -3,6 +3,7 @@ import { Sun, Moon, Timer, Bell, Check, X, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 import jwtDecode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 function AddActivity() {
   const [darkMode, setDarkMode] = useState(false);
   const [step, setStep] = useState(1);
@@ -10,6 +11,8 @@ function AddActivity() {
   const [selectedDays, setSelectedDays] = useState([]);
   const [currentActivity, setCurrentActivity] = useState(null);
   const [name, setName] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
   const navigate = useNavigate();
 
   const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -34,6 +37,10 @@ function AddActivity() {
       });
       setStep(2);
     } else if (step === 2 && selectedDays.length > 0) {
+      if (selectedDays.length === 0) {
+        setErrorMessage("Please select at least one day.");
+        return;
+      }
       setCurrentActivity((prev) =>
         prev ? { ...prev, frequency: selectedDays } : null
       );
@@ -74,6 +81,45 @@ function AddActivity() {
       navigate("/login");
     }
   }, [navigate]);
+
+  const handleSubmitActivity = async () => {
+    const token = localStorage.getItem("token"); // Get the token from localStorage
+    if (!token) {
+      navigate("/login"); // If no token, redirect to login
+      return;
+    }
+
+    const decoded = jwtDecode(token);
+    const username = decoded.name;
+
+    const activityData = {
+      name: currentActivity.name,
+      frequency: selectedDays, // Use selectedDays as the frequency
+      wantReminders: currentActivity.reminder,
+    };
+    console.log("Submitting activity data:", activityData);
+
+    try {
+      const response = await axios.post(
+        `http://localhost:3000/User/addActivity`, // Adjust this URL if needed
+        activityData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("Activity added:", response.data); // Log response from backend
+      navigate(`/dashboard/${username}`); // Redirect to the user's dashboard
+    } catch (error) {
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        setErrorMessage(error.response.data.message || "An error occurred");
+      }
+      console.error("Error adding activity:", error);
+    }
+  };
 
   return (
     <div
@@ -188,6 +234,7 @@ function AddActivity() {
               >
                 Continue
               </button>
+              {errorMessage && <p className="text-red-500">{errorMessage}</p>}
             </div>
           )}
 
@@ -228,6 +275,7 @@ function AddActivity() {
               >
                 Continue
               </button>
+              {errorMessage && <p className="text-red-500">{errorMessage}</p>}
             </div>
           )}
 
@@ -238,7 +286,10 @@ function AddActivity() {
               </h2>
               <div className="flex gap-6">
                 <button
-                  onClick={() => handleReminderChoice(true)}
+                  onClick={() => {
+                    handleReminderChoice(true);
+                    handleSubmitActivity();
+                  }}
                   className="group relative w-40 h-40 rounded-2xl bg-gray-100 hover:bg-green-500 transition-all duration-300 overflow-hidden"
                 >
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 transition-all duration-300 group-hover:transform group-hover:translate-y-0 group-hover:text-white">
@@ -246,8 +297,12 @@ function AddActivity() {
                     <Check className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                   </div>
                 </button>
+                {/* {errorMessage && <p className="text-red-500">{errorMessage}</p>} */}
                 <button
-                  onClick={() => handleReminderChoice(false)}
+                  onClick={() => {
+                    handleReminderChoice(false);
+                    handleSubmitActivity();
+                  }}
                   className="group relative w-40 h-40 rounded-2xl bg-gray-100 hover:bg-red-500 transition-all duration-300 overflow-hidden"
                 >
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 transition-all duration-300 group-hover:transform group-hover:translate-y-0 group-hover:text-white">
@@ -256,6 +311,7 @@ function AddActivity() {
                   </div>
                 </button>
               </div>
+              {errorMessage && <p className="text-red-500">{errorMessage}</p>}
             </div>
           )}
         </div>

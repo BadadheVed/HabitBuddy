@@ -3,10 +3,42 @@ const bcrypt = require('bcrypt')
 mongoose.connect('mongodb://127.0.0.1:27017/HabitBuddy').then(() => {
     console.log("Connection Established");
 }).catch(err => console.log("Error is", err.message))
+
+const ActiSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    frequency: {
+        type: [String],
+        enum: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        required: true
+    },
+    wantReminders: {
+        type: Boolean,
+        default: false
+    },
+    completed: {
+        type: Boolean,
+        default: false
+    },
+    completedAt: {
+        type: Date,
+        default: null
+    },
+    lastCompletedDate: {
+        type: Date,
+        default: null,
+    },
+
+}, { timestamps: true });
 const userSchema = new mongoose.Schema({
     name: { type: String, sparse: true, trim: true },
-    email: { type: String, required: true, unique: true }, // this can be email or  
-    password: { type: String, required: true }
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        match: [/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please provide a valid email address']
+    },
+    password: { type: String, required: true },
+    activities: { type: [ActiSchema] }
 
 }, { timestamps: true })
 
