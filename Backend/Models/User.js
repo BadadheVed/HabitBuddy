@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt')
-mongoose.connect('mongodb://127.0.0.1/HabitBuddy').then(() => {
+mongoose.connect('mongodb://127.0.0.1:27017/HabitBuddy').then(() => {
     console.log("Connection Established");
 }).catch(err => console.log("Error is", err.message))
 const userSchema = new mongoose.Schema({
