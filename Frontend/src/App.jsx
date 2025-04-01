@@ -7,6 +7,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Login from "./login";
 import Dashboard from "./Dashboard";
 import Tokens from "./Tokens";
+import AddActivity from "./AddActivity";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -17,10 +18,18 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route
-          path="/dashboard/:email"
+          path="/dashboard/:name"
           element={
             <Tokens>
               <Dashboard />
+            </Tokens>
+          }
+        />
+        <Route
+          path="/dashboard/:name/add"
+          element={
+            <Tokens>
+              <AddActivity />
             </Tokens>
           }
         />

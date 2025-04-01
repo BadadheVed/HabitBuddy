@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
-  Sun as Run,
+  PlayIcon as Run,
   Flame,
   UserPlus,
   Zap,
@@ -15,7 +17,7 @@ import {
 } from "lucide-react";
 
 import jwtDecode from "jwt-decode";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -57,12 +59,6 @@ const Dashboard = () => {
 
     return () => clearTimeout(timer);
   }, []);
-
-  const topTiles = [
-    { icon: Run, title: "Add Activity", color: "blue" },
-    { icon: Flame, title: "My Activities", color: "orange" },
-    { icon: UserPlus, title: "Add a Friend", color: "teal" },
-  ];
 
   return (
     <div
@@ -161,28 +157,28 @@ const Dashboard = () => {
       <main className="pt-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Top Row */}
-            {topTiles.map((tile, index) => (
-              <div
-                key={index}
-                className={`
-                  aspect-square
-                  ${
-                    darkMode
-                      ? "bg-gray-800/80 hover:bg-gray-700/90"
-                      : "bg-white/80 hover:bg-white/90"
-                  }
-                  rounded-xl shadow-lg backdrop-blur-sm
-                  transition-all duration-300 ease-in-out
-                  transform hover:scale-105 cursor-pointer
-                  group
-                `}
-              >
+            {/* Top Row - Hardcoded Tiles */}
+            {/* Tile 1 - Add Activity */}
+            <div
+              className={`
+                aspect-square
+                ${
+                  darkMode
+                    ? "bg-gray-800/80 hover:bg-gray-700/90"
+                    : "bg-white/80 hover:bg-white/90"
+                }
+                rounded-xl shadow-lg backdrop-blur-sm
+                transition-all duration-300 ease-in-out
+                transform hover:scale-105 cursor-pointer
+                group
+              `}
+            >
+              <Link to="/dashboard/:name/add">
                 <div className="h-full flex flex-col items-center justify-center">
-                  <tile.icon
+                  <Run
                     className={`w-12 h-12 ${
                       darkMode ? "text-gray-200" : "text-gray-700"
-                    } transition-colors duration-300 hover:text-${tile.color}-${
+                    } transition-colors duration-300 hover:text-blue-${
                       darkMode ? "400" : "600"
                     }`}
                   />
@@ -191,9 +187,9 @@ const Dashboard = () => {
                       className={`text-lg font-medium ${
                         darkMode ? "text-white" : "text-gray-900"
                       } 
-                      transition-all duration-300 group-hover:text-xl`}
+                    transition-all duration-300 group-hover:text-xl`}
                     >
-                      {tile.title}
+                      Add Activity
                     </h3>
                     <ArrowRight
                       className={`w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
@@ -202,8 +198,90 @@ const Dashboard = () => {
                     />
                   </div>
                 </div>
+              </Link>
+            </div>
+
+            {/* Tile 2 - My Activities */}
+            <div
+              className={`
+                aspect-square
+                ${
+                  darkMode
+                    ? "bg-gray-800/80 hover:bg-gray-700/90"
+                    : "bg-white/80 hover:bg-white/90"
+                }
+                rounded-xl shadow-lg backdrop-blur-sm
+                transition-all duration-300 ease-in-out
+                transform hover:scale-105 cursor-pointer
+                group
+              `}
+            >
+              <div className="h-full flex flex-col items-center justify-center">
+                <Flame
+                  className={`w-12 h-12 ${
+                    darkMode ? "text-gray-200" : "text-gray-700"
+                  } transition-colors duration-300 hover:text-orange-${
+                    darkMode ? "400" : "600"
+                  }`}
+                />
+                <div className="flex items-center space-x-2 mt-4 transition-transform duration-300 transform group-hover:translate-x-2">
+                  <h3
+                    className={`text-lg font-medium ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    } 
+                    transition-all duration-300 group-hover:text-xl`}
+                  >
+                    My Activities
+                  </h3>
+                  <ArrowRight
+                    className={`w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  />
+                </div>
               </div>
-            ))}
+            </div>
+
+            {/* Tile 3 - Add a Friend */}
+            <div
+              className={`
+                aspect-square
+                ${
+                  darkMode
+                    ? "bg-gray-800/80 hover:bg-gray-700/90"
+                    : "bg-white/80 hover:bg-white/90"
+                }
+                rounded-xl shadow-lg backdrop-blur-sm
+                transition-all duration-300 ease-in-out
+                transform hover:scale-105 cursor-pointer
+                group
+              `}
+            >
+              <div className="h-full flex flex-col items-center justify-center">
+                <UserPlus
+                  className={`w-12 h-12 ${
+                    darkMode ? "text-gray-200" : "text-gray-700"
+                  } transition-colors duration-300 hover:text-teal-${
+                    darkMode ? "400" : "600"
+                  }`}
+                />
+                <div className="flex items-center space-x-2 mt-4 transition-transform duration-300 transform group-hover:translate-x-2">
+                  <h3
+                    className={`text-lg font-medium ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    } 
+                    transition-all duration-300 group-hover:text-xl`}
+                  >
+                    Add a Friend
+                  </h3>
+                  <ArrowRight
+                    className={`w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  />
+                </div>
+              </div>
+            </div>
 
             {/* Bottom Row */}
             <div
