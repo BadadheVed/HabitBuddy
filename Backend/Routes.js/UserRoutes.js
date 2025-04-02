@@ -3,19 +3,19 @@ const bcrypt = require('bcrypt')
 const { jwtAuth, generateToken } = require('./jwt')
 const router = express.Router();
 const User = require('../Models/User')
-const cors = require('cors')
+
+
 router.use(express.json())
+
 router.get('/all', async (req, res) => {
     let user = await User.find();
     let users = [];
 
     res.send(user)
 });
-router.use(cors({
-    origin: 'http://localhost:5173', // Your frontend URL
-    credentials: true
-}));
-router.post('/Signup', cors(), async (req, res) => {
+
+
+router.post('/Signup', async (req, res) => {
     try {
         let { name, email, password } = req.body;
 
@@ -42,7 +42,7 @@ router.post('/Signup', cors(), async (req, res) => {
     }
 });
 
-router.post('/Login', cors(), async (req, res) => {
+router.post('/Login', async (req, res) => {
     try {
         let { email, password } = req.body;
         const user = await User.findOne({ email: email })
@@ -137,6 +137,27 @@ router.get('/activities', jwtAuth, async (req, res) => {
 
     }
 })
+
+router.put('/activities/:id', jwtAuth, async (req, res) => {
+    try {
+        const userid = req.user.id;
+        const user = await User.findById(userid);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const activity = user.activities.id(req.params.id);
+        if (!activity) return res.status(404).json({ message: 'Activity not found' });
+
+
+        activity.completed = req.body.completed;
+        activity.lastCompletedDate = req.body.lastCompletedDate;
+        await user.save();
+
+        res.status(200).json({ message: 'Activity updated successfully', activity });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+    }
+});
 
 // router.post('/Logout', jwtAuth, async (req, res) => {  
 // })

@@ -12,41 +12,62 @@ import {
   ChevronDown,
 } from "lucide-react";
 import confetti from "canvas-confetti";
-
+import axios from "axios";
+import jwtDecode from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 function MyActivities() {
   const [darkMode, setDarkMode] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [timeFilter, setTimeFilter] = useState("today");
   const [showTimeFilterDropdown, setShowTimeFilterDropdown] = useState(false);
-  const [activities, setActivities] = useState([
-    {
-      id: "1",
-      name: "Morning Workout",
-      frequency: ["Mon", "Wed", "Fri"],
-      completed: false,
-    },
-    {
-      id: "2",
-      name: "Read a Book",
-      frequency: ["Tue", "Thu", "Sat"],
-      completed: false,
-    },
-    {
-      id: "3",
-      name: "Meditate",
-      frequency: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-      completed: true,
-      lastCompletedDate: new Date().toISOString(),
-    },
-    {
-      id: "4",
-      name: "Learn Programming",
-      frequency: ["Mon", "Wed", "Fri", "Sun"],
-      completed: true,
-      lastCompletedDate: new Date().toISOString(),
-    },
-  ]);
+  const [activities, setActivities] = useState([]);
+  const [name, setName] = useState("User");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const token = localStorage.getItem("token"); // Assuming JWT token is stored in localStorage
+        const response = await axios.get(
+          "http://localhost:3000/User/activities",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          }
+        );
+        setActivities(response.data);
+        // Set the fetched activities
+      } catch (error) {
+        console.error("Error fetching activities", error);
+      }
+    };
+
+    fetchActivities();
+  }, []);
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem("token");
+      //   console.log(token);
+      if (!token) {
+        navigate("/login"); // Redirect to login if no token
+        return;
+      }
+      const decoded = jwtDecode(token);
+      // console.log("Decoded Token:", decoded);
+
+      const userName =
+        decoded.name || decoded.user?.name || decoded.username || "User";
+
+      setName(userName);
+      if (window.location.pathname !== `/dashboard/${userName}/activities`) {
+        navigate(`/dashboard/${userName}/activities`);
+      }
+    } catch (error) {
+      console.error("Invalid token:", error);
+      localStorage.removeItem("token");
+    }
+  });
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -120,38 +141,53 @@ function MyActivities() {
     });
   };
 
-  const handleActivityComplete = (id) => {
-    setActivities((prev) =>
-      prev.map((activity) => {
-        if (activity.id === id && !activity.completed) {
-          triggerConfetti();
-          return {
-            ...activity,
+  const handleActivityComplete = async (id) => {
+    try {
+      const activityToUpdate = activities.find(
+        (activity) => activity._id === id
+      );
+      console.log("Clicked Activity ID:", id);
+      console.log("All Activities:", activities);
+      if (!activityToUpdate.completed) {
+        triggerConfetti();
+        activityToUpdate.completed = true;
+        activityToUpdate.lastCompletedDate = new Date().toISOString();
+
+        // Update on the backend
+        const token = localStorage.getItem("token");
+        await axios.put(
+          `http://localhost:3000/User/activities/${id}`,
+          {
             completed: true,
-            lastCompletedDate: new Date().toISOString(),
-          };
-        }
-        return activity;
-      })
-    );
+            lastCompletedDate: activityToUpdate.lastCompletedDate,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          }
+        );
+
+        // Update state locally
+        setActivities((prev) =>
+          prev.map((activity) =>
+            activity._id === id
+              ? {
+                  ...activity,
+                  completed: true,
+                  lastCompletedDate: activityToUpdate.lastCompletedDate,
+                }
+              : activity
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error marking activity as completed", error);
+    }
   };
 
   const isActivityDue = (activity) => {
     const today = getCurrentDayName();
     return activity.frequency.includes(today);
-  };
-
-  const calculateProgress = (filter) => {
-    const relevantActivities = activities.filter((activity) => {
-      if (filter === "today") {
-        return isActivityDue(activity);
-      }
-      return true;
-    });
-
-    if (relevantActivities.length === 0) return 0;
-    const completed = relevantActivities.filter((a) => a.completed).length;
-    return Math.round((completed / relevantActivities.length) * 100);
   };
 
   const filteredActivities = activities.filter((activity) => {
@@ -161,8 +197,18 @@ function MyActivities() {
     return matchesCompletionStatus && matchesTimeFilter;
   });
 
-  const progress = calculateProgress(timeFilter);
+  const calculateProgress = (activities) => {
+    if (activities.length === 0) return 0;
 
+    const totalDueActivities = activities.filter((activity) =>
+      isActivityDue(activity)
+    );
+    if (totalDueActivities.length === 0) return 0; // Avoid division by zero
+
+    const completedCount = totalDueActivities.filter((a) => a.completed).length;
+    return Math.round((completedCount / totalDueActivities.length) * 100);
+  };
+  const progress = calculateProgress(activities);
   return (
     <div
       className={`min-h-screen transition-colors duration-300 ${
@@ -184,7 +230,7 @@ function MyActivities() {
               My Activities
             </h1>
             <a
-              href="#"
+              href="/dashboard/:name"
               className="text-blue-500 hover:text-blue-600 flex items-center gap-1"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -229,7 +275,7 @@ function MyActivities() {
                   darkMode ? "text-white" : "text-gray-800"
                 }`}
               >
-                Hi! User
+                Hi! {name}
               </span>
               <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200">
                 Logout
@@ -339,7 +385,7 @@ function MyActivities() {
                   <input
                     type="checkbox"
                     checked={activity.completed}
-                    onChange={() => handleActivityComplete(activity.id)}
+                    onChange={() => handleActivityComplete(activity._id)}
                     className="sr-only peer"
                   />
                   <div
@@ -375,16 +421,16 @@ function MyActivities() {
               >
                 <path
                   d="M18 2.0845
-                    a 15.9155 15.9155 0 0 1 0 31.831
-                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
                   fill="none"
                   stroke={darkMode ? "#374151" : "#E5E7EB"}
                   strokeWidth="3"
                 />
                 <path
                   d="M18 2.0845
-                    a 15.9155 15.9155 0 0 1 0 31.831
-                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
                   fill="none"
                   stroke="#10B981"
                   strokeWidth="3"
