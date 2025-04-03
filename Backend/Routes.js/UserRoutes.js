@@ -158,31 +158,69 @@ router.put('/activities/:id', jwtAuth, async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
-router.get('/AddFriend', jwtAuth, async (req, res) => {
-
+router.post('/AddFriend', jwtAuth, async (req, res) => {
     try {
-        const { query } = req.query; // Get search query from request (ID or name)
+        const senderId = req.user.id; // Get sender ID from JWT
+        const { userId, userName } = req.body; // Get receiver's ID and Name from request body
 
+        if (!userId || !userName) {
+            return res.status(400).json({ message: "User ID and Name are required" });
+        }
+
+        // Find the receiver user
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user._id.toString() === senderId) {
+            return res.status(400).json({ message: "You cannot send a friend request to yourself" });
+        }
+
+        if (user.friendRequests.some(req => req.sender.toString() === senderId)) {
+            return res.status(400).json({ message: "Friend request already sent" });
+        }
+
+        // Save friend request with senderId and senderName
+        user.friendRequests.push({ sender: senderId, status: "pending" });
+        await user.save();
+
+        res.status(200).json({ message: `Friend request sent to ${userName}`, user });
+    } catch (error) {
+        console.error("Error sending friend request:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+router.get('/getUsers', jwtAuth, async (req, res) => {
+    try {
+        const { query } = req.query;
         if (!query) {
             return res.status(400).json({ message: "Search query is required" });
         }
 
         let users;
 
-        // If query is a valid MongoDB ObjectId, search by ID
+        // Check if query is a valid MongoDB ObjectId
         if (query.match(/^[0-9a-fA-F]{24}$/)) {
-            users = await User.find({ _id: query }).select('name email');
+            // Search by _id if query matches ObjectId format
+            users = await User.find({ _id: query }).select('name email _id');
         } else {
-            // Otherwise, search by name (case-insensitive)
-            users = await User.find({ name: { $regex: query, $options: "i" } }).select('name email');
+            // Search by name if not an ObjectId
+            users = await User.find({
+                name: { $regex: query, $options: 'i' }
+            }).select('name email _id');
         }
 
-        res.status(200).json(users);
+        // Remove the current user from results
+        const filteredUsers = users.filter(user => user._id.toString() !== req.user.id);
+
+        res.status(200).json(filteredUsers);
     } catch (error) {
-        console.error(error);
+        console.error("Error searching users:", error);
         res.status(500).json({ message: "Server error" });
     }
-})
+});
 
 // router.post('/Logout', jwtAuth, async (req, res) => {  
 // })

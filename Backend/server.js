@@ -1,17 +1,46 @@
-const express = require('express')
-const app = express();
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 require('dotenv').config();
-const { jwtAuth } = require('./Routes.js/jwt')
+
+const UserRoute = require('./Routes.js/UserRoutes');
+
+const cors = require('cors');
+const app = express();
+const server = http.createServer(app); // Create HTTP server
+const io = new Server(server, {
+    cors: {
+        origin: 'http://localhost:5173', // Allow frontend connection
+        methods: ['GET', 'POST'],
+        credentials: true,
+    }
+});
+
 const PORT = process.env.PORT || 3000;
-const UserRoute = require('./Routes.js/UserRoutes')
-const cors = require('cors')
-const corsOptions = {
-    origin: 'http://localhost:5173',  // Allow only requests from this frontend origin
-    credentials: true,  // Allow credentials (cookies, Authorization headers)
-};
-app.use(cors(corsOptions));
+
+// Middleware
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 app.use(express.json());
-app.use('/User', UserRoute)
-app.listen(PORT, () => {
-    console.log(`Listening On The Port ${PORT}`);
-})
+
+// User routes
+app.use('/User', UserRoute);
+
+// Socket.IO event handling
+io.on('connection', (socket) => {
+    console.log(`User connected: ${socket.id}`);
+
+    // Handle friend request event
+    socket.on('sendFriendRequest', (data) => {
+        console.log(`Friend request sent from ${data.senderId} to ${data.receiverId}`);
+        io.emit('friendRequest', data); // Broadcast to all users
+    });
+
+    socket.on('disconnect', () => {
+        console.log(`User disconnected: ${socket.id}`);
+    });
+});
+
+// Start server
+server.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}`);
+});
