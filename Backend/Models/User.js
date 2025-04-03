@@ -27,6 +27,11 @@ const ActiSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    friendRequests: [{
+        sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' }
+    }]
 
 }, { timestamps: true });
 const userSchema = new mongoose.Schema({

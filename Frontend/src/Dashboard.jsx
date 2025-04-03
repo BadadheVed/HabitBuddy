@@ -101,7 +101,7 @@ const Dashboard = () => {
                 {darkMode ? (
                   <Sun className="w-5 h-5 text-white" />
                 ) : (
-                  <Moon className="w-5 h-5" />
+                  <Moon className="w-5 h-5 text-gray-700" />
                 )}
               </button>
               <div className="relative">
@@ -245,8 +245,9 @@ const Dashboard = () => {
             </Link>
 
             {/* Tile 3 - Add a Friend */}
-            <div
-              className={`
+            <Link to="/dashboard/:name/add-friend">
+              <div
+                className={`
                 aspect-square
                 ${
                   darkMode
@@ -258,32 +259,33 @@ const Dashboard = () => {
                 transform hover:scale-105 cursor-pointer
                 group
               `}
-            >
-              <div className="h-full flex flex-col items-center justify-center">
-                <UserPlus
-                  className={`w-12 h-12 ${
-                    darkMode ? "text-gray-200" : "text-gray-700"
-                  } transition-colors duration-300 hover:text-teal-${
-                    darkMode ? "400" : "600"
-                  }`}
-                />
-                <div className="flex items-center space-x-2 mt-4 transition-transform duration-300 transform group-hover:translate-x-2">
-                  <h3
-                    className={`text-lg font-medium ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    } 
-                    transition-all duration-300 group-hover:text-xl`}
-                  >
-                    Add a Friend
-                  </h3>
-                  <ArrowRight
-                    className={`w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
-                      darkMode ? "text-white" : "text-gray-900"
+              >
+                <div className="h-full flex flex-col items-center justify-center">
+                  <UserPlus
+                    className={`w-12 h-12 ${
+                      darkMode ? "text-gray-200" : "text-gray-700"
+                    } transition-colors duration-300 hover:text-teal-${
+                      darkMode ? "400" : "600"
                     }`}
                   />
+                  <div className="flex items-center space-x-2 mt-4 transition-transform duration-300 transform group-hover:translate-x-2">
+                    <h3
+                      className={`text-lg font-medium ${
+                        darkMode ? "text-white" : "text-gray-900"
+                      } 
+                    transition-all duration-300 group-hover:text-xl`}
+                    >
+                      Add a Friend
+                    </h3>
+                    <ArrowRight
+                      className={`w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                        darkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* Bottom Row */}
             <div

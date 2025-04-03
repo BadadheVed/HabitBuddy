@@ -158,6 +158,31 @@ router.put('/activities/:id', jwtAuth, async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+router.get('/AddFriend', jwtAuth, async (req, res) => {
+
+    try {
+        const { query } = req.query; // Get search query from request (ID or name)
+
+        if (!query) {
+            return res.status(400).json({ message: "Search query is required" });
+        }
+
+        let users;
+
+        // If query is a valid MongoDB ObjectId, search by ID
+        if (query.match(/^[0-9a-fA-F]{24}$/)) {
+            users = await User.find({ _id: query }).select('name email');
+        } else {
+            // Otherwise, search by name (case-insensitive)
+            users = await User.find({ name: { $regex: query, $options: "i" } }).select('name email');
+        }
+
+        res.status(200).json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+    }
+})
 
 // router.post('/Logout', jwtAuth, async (req, res) => {  
 // })
