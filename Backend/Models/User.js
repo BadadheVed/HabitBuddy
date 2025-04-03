@@ -27,11 +27,7 @@ const ActiSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
-    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    friendRequests: [{
-        sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' }
-    }]
+
 
 }, { timestamps: true });
 const userSchema = new mongoose.Schema({
@@ -43,7 +39,12 @@ const userSchema = new mongoose.Schema({
         match: [/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please provide a valid email address']
     },
     password: { type: String, required: true },
-    activities: { type: [ActiSchema] }
+    activities: { type: [ActiSchema] },
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    friendRequests: [{
+        sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' }
+    }]
 
 }, { timestamps: true })
 
