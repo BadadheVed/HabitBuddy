@@ -15,6 +15,7 @@ import confetti from "canvas-confetti";
 import axios from "axios";
 import jwtDecode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 function MyActivities() {
   const [darkMode, setDarkMode] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
@@ -23,6 +24,8 @@ function MyActivities() {
   const [showTimeFilterDropdown, setShowTimeFilterDropdown] = useState(false);
   const [activities, setActivities] = useState([]);
   const [name, setName] = useState("User");
+  const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,28 +49,34 @@ function MyActivities() {
     fetchActivities();
   }, []);
   useEffect(() => {
-    try {
-      const token = localStorage.getItem("token");
-      //   console.log(token);
-      if (!token) {
-        navigate("/login"); // Redirect to login if no token
-        return;
-      }
-      const decoded = jwtDecode(token);
-      // console.log("Decoded Token:", decoded);
+    const verifyAuth = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/login");
+          return;
+        }
 
-      const userName =
-        decoded.name || decoded.user?.name || decoded.username || "User";
+        const decoded = jwtDecode(token);
+        const userName =
+          decoded.name || decoded.user?.name || decoded.username || "User";
+        setName(userName);
 
-      setName(userName);
-      if (window.location.pathname !== `/dashboard/${userName}/activities`) {
-        navigate(`/dashboard/${userName}/activities`);
+        const expectedPath = `/dashboard/${userName}/activities`;
+        if (window.location.pathname !== expectedPath) {
+          navigate(expectedPath);
+        }
+      } catch (error) {
+        console.error("Auth error:", error);
+        localStorage.removeItem("token");
+        navigate("/login");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Invalid token:", error);
-      localStorage.removeItem("token");
-    }
-  });
+    };
+
+    verifyAuth();
+  }, [navigate]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -229,13 +238,13 @@ function MyActivities() {
             >
               My Activities
             </h1>
-            <a
-              href="/dashboard/:name"
+            <Link
+              to={`/dashboard/${name}`}
               className="text-blue-500 hover:text-blue-600 flex items-center gap-1"
             >
               <ArrowLeft className="w-4 h-4" />
               Go To Dashboard
-            </a>
+            </Link>
           </div>
           <div className="flex items-center gap-4">
             <div

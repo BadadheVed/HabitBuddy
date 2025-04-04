@@ -9,6 +9,12 @@ import {
   Clock,
   Search,
   UserPlus,
+  Check,
+  X,
+  UserCheck,
+  Users,
+  UserMinus,
+  User,
 } from "lucide-react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
@@ -26,6 +32,10 @@ function AddFriend() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [userName, setUserName] = useState("");
+  const [showFriendRequests, setShowFriendRequests] = useState(false);
+  const [showMyFriends, setShowMyFriends] = useState(false);
+  const [friendRequests, setFriendRequests] = useState([]);
+  const [friends, setFriends] = useState([]);
   const navigate = useNavigate();
 
   // Initialize Socket.IO
@@ -34,12 +44,63 @@ function AddFriend() {
 
     socket.on("friendRequest", (data) => {
       toast.success(`New friend request from ${data.senderName}`);
+      fetchFriendRequests();
+    });
+
+    socket.on("friendRemoved", (data) => {
+      toast.success(
+        `${data.friendName} has been removed from your friends list`
+      );
+      fetchFriends();
     });
 
     return () => {
       socket.disconnect();
     };
   }, []);
+
+  const fetchFriends = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "http://localhost:3000/User/getFriends",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setFriends(response.data.friends);
+    } catch (error) {
+      console.error("Error fetching friends:", error);
+      toast.error("Failed to fetch friends list");
+    }
+  };
+
+  const fetchFriendRequests = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "http://localhost:3000/User/getRequest",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setFriendRequests(response.data.friendRequests);
+    } catch (error) {
+      console.error("Error fetching friend requests:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (showFriendRequests) {
+      fetchFriendRequests();
+    }
+  }, [showFriendRequests]);
+
+  useEffect(() => {
+    if (showMyFriends) {
+      fetchFriends();
+    }
+  }, [showMyFriends]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -119,13 +180,9 @@ function AddFriend() {
   const handleAddFriend = async (userId, userName) => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("User not authenticated");
-        return;
-      }
-      const response = await axios.post(
+      await axios.post(
         "http://localhost:3000/User/AddFriend",
-        { userId, userName }, // ✅ Sending both userId and userName
+        { userId, userName },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -133,13 +190,67 @@ function AddFriend() {
     } catch (error) {
       console.error("Error sending friend request:", error);
 
-      if (error.response) {
-        toast.error(
-          error.response.data.message || "Failed to send friend request."
-        );
-      } else {
-        toast.error("Something went wrong. Please try again.");
+      const errorMessage =
+        error.response && error.response.data && error.response.data.message
+          ? error.response.data.message
+          : "Failed to send friend request. Please try again.";
+
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleRemoveFriend = async (friendId, friendName) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:3000/User/removeFriend",
+        { friendId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(`${friendName} has been removed from your friends list`);
+      fetchFriends();
+    } catch (error) {
+      console.error("Error removing friend:", error);
+      toast.error("Failed to remove friend. Please try again.");
+    }
+  };
+
+  const handleAcceptRequest = async (senderId, senderName) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:3000/User/acceptFriendRequest",
+        { senderId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(`You are now friends with ${senderName}!`);
+      fetchFriendRequests();
+      fetchFriends();
+    } catch (error) {
+      console.error("Error accepting friend request:", error);
+      toast.error("Failed to accept friend request. Please try again.");
+    }
+  };
+
+  const handleRejectRequest = async (senderId, senderName) => {
+    try {
+      if (!senderId) {
+        toast.error("Invalid sender ID");
+        return;
       }
+
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:3000/User/rejectFriendRequest",
+        { senderId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success(`Friend request from ${senderName} rejected`);
+      fetchFriendRequests();
+    } catch (error) {
+      console.error("Error rejecting friend request:", error);
+      toast.error("Failed to reject friend request. Please try again.");
     }
   };
 
@@ -148,86 +259,130 @@ function AddFriend() {
     navigate("/login");
   };
 
-  return (
-    <div
-      className={`min-h-screen transition-colors duration-300 ${
-        darkMode ? "dark bg-gray-900" : "bg-gray-100"
-      }`}
-    >
-      <Toaster position="top-right" />
-      <nav className={`p-4 ${darkMode ? "bg-gray-800" : "bg-white"} shadow-lg`}>
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Activity
-              className={`h-6 w-6 ${darkMode ? "text-white" : "text-gray-800"}`}
-            />
-            <h1
-              className={`text-xl font-bold ${
-                darkMode ? "text-white" : "text-gray-800"
-              }`}
-            >
-              Find Friends
-            </h1>
-            <Link
-              to={`/dashboard/${userName}`}
-              className="text-blue-500 hover:text-blue-600 flex items-center gap-1"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Go To Dashboard
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
+  const renderContent = () => {
+    if (showMyFriends) {
+      return (
+        <div className="space-y-4 max-w-2xl mx-auto">
+          {friends.length === 0 ? (
             <div
-              className={`flex items-center gap-2 ${
-                darkMode ? "text-white" : "text-gray-800"
+              className={`p-8 rounded-xl text-center ${
+                darkMode
+                  ? "bg-gray-800 text-gray-400"
+                  : "bg-white text-gray-600"
               }`}
             >
-              <Calendar className="w-5 h-5" />
-              <span>{formatDate(currentTime)}</span>
-              <Clock className="w-5 h-5 ml-4" />
-              <span>{formatTime(currentTime)}</span>
+              <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">No friends yet</p>
+              <p className="mt-2">Start adding friends to see them here</p>
             </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={toggleDarkMode}
-              className={`p-2 rounded-full ${
-                darkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
-              }`}
-            >
-              {darkMode ? (
-                <Sun className="text-white" />
-              ) : (
-                <Moon className="text-gray-800" />
-              )}
-            </button>
-            <button
-              className={`p-2 rounded-full ${
-                darkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
-              }`}
-            >
-              <Bell className={darkMode ? "text-white" : "text-gray-800"} />
-            </button>
-            <div className="flex items-center gap-2">
-              <span
-                className={`font-medium ${
-                  darkMode ? "text-white" : "text-gray-800"
+          ) : (
+            friends.map((friend) => (
+              <div
+                key={friend._id}
+                className={`flex items-center justify-between p-6 rounded-xl shadow-lg ${
+                  darkMode ? "bg-gray-800" : "bg-white"
                 }`}
               >
-                Hi! {userName}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
+                <div>
+                  <h3
+                    className={`text-xl font-semibold ${
+                      darkMode ? "text-white" : "text-gray-800"
+                    }`}
+                  >
+                    {friend.name}
+                  </h3>
+                  <p
+                    className={`text-sm ${
+                      darkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
+                    ID: {friend._id}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleRemoveFriend(friend._id, friend.name)}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center gap-2"
+                >
+                  <UserMinus className="w-4 h-4" />
+                  Remove Friend
+                </button>
+              </div>
+            ))
+          )}
         </div>
-      </nav>
+      );
+    }
 
-      <div className="container mx-auto p-8">
+    if (showFriendRequests) {
+      return (
+        <div className="space-y-4 max-w-2xl mx-auto">
+          {friendRequests.length === 0 ? (
+            <div
+              className={`p-8 rounded-xl text-center ${
+                darkMode
+                  ? "bg-gray-800 text-gray-400"
+                  : "bg-white text-gray-600"
+              }`}
+            >
+              <UserCheck className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">No friend requests yet</p>
+              <p className="mt-2">
+                When someone sends you a friend request, it will appear here
+              </p>
+            </div>
+          ) : (
+            friendRequests.map((request) => (
+              <div
+                key={request.senderId}
+                className={`flex items-center justify-between p-6 rounded-xl shadow-lg ${
+                  darkMode ? "bg-gray-800" : "bg-white"
+                }`}
+              >
+                <div>
+                  <h3
+                    className={`text-xl font-semibold ${
+                      darkMode ? "text-white" : "text-gray-800"
+                    }`}
+                  >
+                    {request.senderName}
+                  </h3>
+                  <p
+                    className={`text-sm ${
+                      darkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
+                    Wants to be your friend
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() =>
+                      handleAcceptRequest(request.senderId, request.senderName)
+                    }
+                    className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center gap-2"
+                  >
+                    <Check className="w-4 h-4" />
+                    Accept
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleRejectRequest(request.senderId, request.senderName)
+                    }
+                    className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center gap-2"
+                  >
+                    <X className="w-4 h-4" />
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <>
         <div className="flex flex-col items-center mb-8">
           <div
             className={`w-full max-w-2xl ${
@@ -293,6 +448,13 @@ function AddFriend() {
                 >
                   ID: {user._id}
                 </p>
+                <p
+                  className={`text-sm ${
+                    darkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  {user.email}
+                </p>
               </div>
               <button
                 onClick={() => handleAddFriend(user._id, user.name)}
@@ -304,7 +466,159 @@ function AddFriend() {
             </div>
           ))}
         </div>
+      </>
+    );
+  };
+
+  return (
+    <div
+      className={`min-h-screen transition-colors duration-300 ${
+        darkMode ? "dark bg-gray-900" : "bg-gray-100"
+      }`}
+    >
+      <Toaster position="top-right" />
+      <nav className={`p-4 ${darkMode ? "bg-gray-800" : "bg-white"} shadow-lg`}>
+        <div className="container mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <Activity
+              className={`h-6 w-6 ${darkMode ? "text-white" : "text-gray-800"}`}
+            />
+            <h1
+              className={`text-xl font-bold ${
+                darkMode ? "text-white" : "text-gray-800"
+              }`}
+            >
+              Friends
+            </h1>
+            <Link
+              to={`/dashboard/${userName}`}
+              className="text-blue-500 hover:text-blue-600 flex items-center gap-1"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Go To Dashboard
+            </Link>
+          </div>
+          <div className="flex items-center gap-4">
+            <div
+              className={`flex items-center gap-2 ${
+                darkMode ? "text-white" : "text-gray-800"
+              }`}
+            >
+              <Calendar className="w-5 h-5" />
+              <span>{formatDate(currentTime)}</span>
+              <Clock className="w-5 h-5 ml-4" />
+              <span>{formatTime(currentTime)}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleDarkMode}
+              className={`p-2 rounded-full ${
+                darkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
+              }`}
+            >
+              {darkMode ? (
+                <Sun className="text-white" />
+              ) : (
+                <Moon className="text-gray-800" />
+              )}
+            </button>
+            <button
+              className={`p-2 rounded-full ${
+                darkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
+              }`}
+            >
+              <Bell className={darkMode ? "text-white" : "text-gray-800"} />
+            </button>
+            <div className="flex items-center gap-2">
+              <span
+                className={`font-medium ${
+                  darkMode ? "text-white" : "text-gray-800"
+                }`}
+              >
+                Hi! {userName}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Toggle Switch */}
+      <div className="flex flex-col items-center mt-8">
+        <div
+          className={`relative w-[30rem] h-12 rounded-full p-1 ${
+            darkMode ? "bg-gray-700" : "bg-gray-200"
+          }`}
+        >
+          <div
+            className={`absolute inset-y-1 w-[9.5rem] rounded-full transition-all duration-300 transform ${
+              showMyFriends
+                ? "translate-x-[19.5rem]"
+                : showFriendRequests
+                ? "translate-x-[9.75rem]"
+                : "translate-x-0"
+            } ${darkMode ? "bg-gray-800" : "bg-white"} shadow-lg`}
+          />
+          <div className="relative flex h-full">
+            <button
+              onClick={() => {
+                setShowFriendRequests(false);
+                setShowMyFriends(false);
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 ${
+                !showFriendRequests && !showMyFriends
+                  ? "text-blue-500 font-medium"
+                  : darkMode
+                  ? "text-gray-400"
+                  : "text-gray-600"
+              } transition-colors duration-300 z-10`}
+            >
+              <UserPlus className="w-4 h-4" />
+              Add Friends
+            </button>
+            <button
+              onClick={() => {
+                setShowFriendRequests(true);
+                setShowMyFriends(false);
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 ${
+                showFriendRequests
+                  ? "text-blue-500 font-medium"
+                  : darkMode
+                  ? "text-gray-400"
+                  : "text-gray-600"
+              } transition-colors duration-300 z-10`}
+            >
+              <UserCheck className="w-4 h-4" />
+              Friend Requests
+            </button>
+            <button
+              onClick={() => {
+                setShowFriendRequests(false);
+                setShowMyFriends(true);
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 ${
+                showMyFriends
+                  ? "text-blue-500 font-medium"
+                  : darkMode
+                  ? "text-gray-400"
+                  : "text-gray-600"
+              } transition-colors duration-300 z-10`}
+            >
+              <Users className="w-4 h-4" />
+              My Friends
+            </button>
+          </div>
+        </div>
       </div>
+
+      <div className="container mx-auto p-8">{renderContent()}</div>
     </div>
   );
 }

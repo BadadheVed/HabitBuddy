@@ -14,6 +14,7 @@ import {
   Moon,
   Sun,
   ArrowRight,
+  Users,
 } from "lucide-react";
 
 import jwtDecode from "jwt-decode";
@@ -261,7 +262,7 @@ const Dashboard = () => {
               `}
               >
                 <div className="h-full flex flex-col items-center justify-center">
-                  <UserPlus
+                  <Users
                     className={`w-12 h-12 ${
                       darkMode ? "text-gray-200" : "text-gray-700"
                     } transition-colors duration-300 hover:text-teal-${
@@ -275,7 +276,7 @@ const Dashboard = () => {
                       } 
                     transition-all duration-300 group-hover:text-xl`}
                     >
-                      Add a Friend
+                      Manage Friends
                     </h3>
                     <ArrowRight
                       className={`w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${

@@ -4,6 +4,8 @@ const { jwtAuth, generateToken } = require('./jwt')
 const router = express.Router();
 const User = require('../Models/User')
 
+const socketIO = require('socket.io')
+
 
 router.use(express.json())
 
@@ -203,7 +205,7 @@ router.get('/getUsers', jwtAuth, async (req, res) => {
 
         // Check if query is a valid MongoDB ObjectId
         if (query.match(/^[0-9a-fA-F]{24}$/)) {
-            // Search by _id if query matches ObjectId format
+
             users = await User.find({ _id: query }).select('name email _id');
         } else {
             // Search by name if not an ObjectId
@@ -221,6 +223,138 @@ router.get('/getUsers', jwtAuth, async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
+router.get('/getRequest', jwtAuth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId).populate("friendRequests.sender", "name _id");
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const friendRequests = user.friendRequests.map((request) => ({
+            senderId: request.sender._id,
+            senderName: request.sender.name,
+            status: request.status,
+        }));
+        res.status(200).json({ friendRequests });
+    } catch (error) {
+        console.error("Error fetching friend requests:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+})
+router.post('/acceptFriendRequest', jwtAuth, async (req, res) => {
+    try {
+        const receiverId = req.user.id;
+        const { senderId } = req.body;
+
+        const receiver = await User.findById(receiverId);
+        const sender = await User.findById(senderId);
+
+        if (!receiver || !sender) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Remove friend request
+        receiver.friendRequests = receiver.friendRequests.filter(
+            request => request.sender.toString() !== senderId
+        );
+
+        // Add to friends list for both users
+        if (!receiver.friends.includes(senderId)) {
+            receiver.friends.push(senderId);
+        }
+        if (!sender.friends.includes(receiverId)) {
+            sender.friends.push(receiverId);
+        }
+
+        await Promise.all([receiver.save(), sender.save()]);
+
+        res.status(200).json({ message: "Friend request accepted" });
+    } catch (error) {
+        console.error("Error accepting friend request:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+router.post('/rejectFriendRequest', jwtAuth, async (req, res) => {
+    try {
+        const receiverId = req.user.id;
+        const { senderId } = req.body;
+
+        if (!senderId) {
+            return res.status(400).json({ message: "Sender ID is required" });
+        }
+
+        const receiver = await User.findById(receiverId).populate("friendRequests.sender");
+        if (!receiver) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+
+        receiver.friendRequests = receiver.friendRequests.filter(
+            request => request.sender && request.sender._id.toString() !== senderId
+        );
+
+        await receiver.save();
+
+        res.status(200).json({ message: "Friend request rejected" });
+    } catch (error) {
+        console.error("Error rejecting friend request:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+router.get('/getFriends', jwtAuth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId).populate('friends', 'name _id');
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const friends = user.friends.map(friend => ({
+            _id: friend._id,
+            name: friend.name
+        }));
+
+        res.status(200).json({ friends });
+    } catch (error) {
+        console.error("Error fetching friends:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+router.post('/removeFriend', jwtAuth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { friendId } = req.body;
+
+        const [user, friend] = await Promise.all([
+            User.findById(userId),
+            User.findById(friendId)
+        ]);
+
+        if (!user || !friend) {
+            return res.status(404).json({ message: "User or friend not found" });
+        }
+
+        // Remove friend from both users' friend lists
+        user.friends = user.friends.filter(id => id.toString() !== friendId);
+        friend.friends = friend.friends.filter(id => id.toString() !== userId);
+
+        await Promise.all([user.save(), friend.save()]);
+
+        // Emit socket event for real-time update
+        const io = req.app.get('io');
+        io.to(friendId).emit('friendRemoved', {
+            friendId: userId,
+            friendName: user.name
+        });
+
+        res.status(200).json({ message: "Friend removed successfully" });
+    } catch (error) {
+        console.error("Error removing friend:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+})
+
 
 // router.post('/Logout', jwtAuth, async (req, res) => {  
 // })

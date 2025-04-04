@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import jwtDecode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+
 function AddActivity() {
   const [darkMode, setDarkMode] = useState(false);
   const [step, setStep] = useState(1);
@@ -149,13 +150,13 @@ function AddActivity() {
             >
               Dashboard
             </h1>
-            <a
-              href="/dashboard/:name"
+            <Link
+              to={`/dashboard/${name}`}
               className="text-blue-500 hover:text-blue-600 flex items-center gap-1"
             >
               <ArrowLeft className="w-4 h-4" />
               Go To Dashboard
-            </a>
+            </Link>
           </div>
           {/* <Link to="/dashboard/:name"> Go To Homepage</Link> */}
           <div className="flex items-center gap-4">
