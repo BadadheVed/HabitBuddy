@@ -11,6 +11,9 @@ import AddActivity from "./AddActivity";
 import MyActivities from "./MyActivities";
 import AddFriend from "./AddFriend";
 import ChallengeActivity from "./ChallengeFriend";
+import HeatMap from "./Heatmap";
+import Notifications from "./Notifications";
+import Profile from "./Profile";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -57,6 +60,30 @@ function App() {
           element={
             <Tokens>
               <ChallengeActivity />
+            </Tokens>
+          }
+        />
+        <Route
+          path="/dashboard/:name/heatmap"
+          element={
+            <Tokens>
+              <HeatMap />
+            </Tokens>
+          }
+        />
+        <Route
+          path="/dashboard/:name/notifications"
+          element={
+            <Tokens>
+              <Notifications />
+            </Tokens>
+          }
+        />
+        <Route
+          path="/dashboard/:name/profile"
+          element={
+            <Tokens>
+              <Profile />
             </Tokens>
           }
         />

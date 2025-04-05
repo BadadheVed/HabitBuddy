@@ -21,11 +21,12 @@ import "./index.css";
 import jwtDecode from "jwt-decode";
 import { Link, useNavigate } from "react-router-dom";
 import { LineChartIcon } from "lucide-react";
+import axios from "axios";
 
 const Dashboard = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
-  const [hasNotification] = useState(true);
+  const [hasNotification, setHasNotification] = useState(false);
   const [name, setName] = useState("User"); // This would come from your auth context
   const navigate = useNavigate();
 
@@ -66,6 +67,34 @@ const Dashboard = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
+  const fetchFriendRequests = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "http://localhost:3000/User/getRequest",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (
+        response.data.friendRequests &&
+        response.data.friendRequests.length > 0
+      ) {
+        setHasNotification(true);
+      } else {
+        setHasNotification(false);
+      }
+    } catch (error) {
+      console.error("Error fetching friend requests:", error);
+    }
+  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchFriendRequests();
+    }, 1000); // Fetch every 5 seconds
+
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, []);
 
   return (
     <div
@@ -99,7 +128,7 @@ const Dashboard = () => {
                   darkMode ? "text-gray-300" : "text-gray-600"
                 }`}
               >
-                Hi! {name}
+                Hi! {name} 👋
               </span>
             </div>
 
@@ -125,21 +154,37 @@ const Dashboard = () => {
                 />
                 <span className="slider" />
               </label>
-              <div className="relative">
-                <Bell
-                  className={`w-6 h-6 ${
-                    darkMode ? "text-white" : "text-gray-700"
-                  }`}
-                />
-                {hasNotification && (
-                  <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
-                )}
-              </div>
-              <UserCircle2
-                className={`w-6 h-6 ${
-                  darkMode ? "text-white" : "text-gray-700"
-                }`}
-              />
+              <Link to="/dashboard/:name/notifications">
+                <div className="relative">
+                  <button
+                    className={`p-2 rounded-full ${
+                      darkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
+                    }`}
+                  >
+                    <Bell
+                      className={darkMode ? "text-white" : "text-gray-800"}
+                    />
+                  </button>
+                  {hasNotification && (
+                    <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
+                  )}
+                </div>
+              </Link>
+              <Link to={"/dashboard/:name/profile"}>
+                <div className="relative">
+                  <button
+                    className={`p-2 rounded-full ${
+                      darkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
+                    }`}
+                  >
+                    <UserCircle2
+                      className={`w-6 h-6 ${
+                        darkMode ? "text-white" : "text-gray-700"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </Link>
               <button class="Btn" onClick={handleLogout}>
                 <div class="sign">
                   <svg viewBox="0 0 512 512">
@@ -351,6 +396,7 @@ const Dashboard = () => {
             </Link>
 
             {/* Heatmap Tile - Double Width */}
+
             <div
               className={`
               md:col-span-2
@@ -366,30 +412,32 @@ const Dashboard = () => {
               group
             `}
             >
-              <div className="h-full flex flex-col items-center justify-center">
-                <LineChart
-                  className={`w-12 h-12 ${
-                    darkMode ? "text-gray-200" : "text-gray-700"
-                  } transition-colors duration-300 hover:text-orange-${
-                    darkMode ? "400" : "600"
-                  }`}
-                />
-                <div className="flex items-center space-x-2 mt-4 transition-transform duration-300 transform group-hover:translate-x-2">
-                  <h3
-                    className={`text-lg font-medium ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    } 
-                    transition-all duration-300 group-hover:text-xl`}
-                  >
-                    See Heatmap
-                  </h3>
-                  <ArrowRight
-                    className={`w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
-                      darkMode ? "text-white" : "text-gray-900"
+              <Link to="/dashboard/:name/heatmap">
+                <div className="h-full flex flex-col items-center justify-center">
+                  <LineChart
+                    className={`w-12 h-12 ${
+                      darkMode ? "text-gray-200" : "text-gray-700"
+                    } transition-colors duration-300 hover:text-orange-${
+                      darkMode ? "400" : "600"
                     }`}
                   />
-                </div>
-              </div>
+                  <div className="flex items-center space-x-2 mt-4 transition-transform duration-300 transform group-hover:translate-x-2">
+                    <h3
+                      className={`text-lg font-medium ${
+                        darkMode ? "text-white" : "text-gray-900"
+                      } 
+                    transition-all duration-300 group-hover:text-xl`}
+                    >
+                      See Heatmap
+                    </h3>
+                    <ArrowRight
+                      className={`w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                        darkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    />
+                  </div>
+                </div>{" "}
+              </Link>
             </div>
           </div>
         </div>

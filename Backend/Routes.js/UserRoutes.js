@@ -230,7 +230,9 @@ router.get('/getRequest', jwtAuth, async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        const friendRequests = user.friendRequests.map((request) => ({
+        const pendingRequests = user.friendRequests.filter(req => req.status === 'pending');
+
+        const friendRequests = pendingRequests.map((request) => ({
             senderId: request.sender._id,
             senderName: request.sender.name,
             status: request.status,
@@ -484,8 +486,44 @@ router.post('/rejectChallenge', jwtAuth, async (req, res) => {
 
 
 
-// router.post('/Logout', jwtAuth, async (req, res) => {  
-// })
+router.get('/activityHeatmap', jwtAuth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const year = parseInt(req.query.year) || new Date().getFullYear();
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Get all completed activities for the specified year
+        const startDate = new Date(year, 0, 1);
+        const endDate = new Date(year, 11, 31);
+
+        const completedActivities = user.activities
+            .filter(activity =>
+                activity.completedAt &&
+                new Date(activity.completedAt) >= startDate &&
+                new Date(activity.completedAt) <= endDate
+            )
+            .reduce((acc, activity) => {
+                const date = new Date(activity.completedAt).toISOString().split('T')[0];
+                acc[date] = (acc[date] || 0) + 1;
+                return acc;
+            }, {});
+
+        // Convert to array format
+        const activities = Object.entries(completedActivities).map(([date, count]) => ({
+            date,
+            count
+        }));
+
+        res.status(200).json({ activities });
+    } catch (error) {
+        console.error("Error fetching activity heatmap:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
 
 
 module.exports = router;
