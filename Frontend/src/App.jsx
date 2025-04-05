@@ -10,6 +10,7 @@ import Tokens from "./Tokens";
 import AddActivity from "./AddActivity";
 import MyActivities from "./MyActivities";
 import AddFriend from "./AddFriend";
+import ChallengeActivity from "./ChallengeFriend";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -48,6 +49,14 @@ function App() {
           element={
             <Tokens>
               <AddFriend />
+            </Tokens>
+          }
+        />
+        <Route
+          path="/dashboard/:name/challenge"
+          element={
+            <Tokens>
+              <ChallengeActivity />
             </Tokens>
           }
         />

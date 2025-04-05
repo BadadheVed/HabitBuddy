@@ -8,6 +8,7 @@ import {
   X,
   Activity,
   ArrowLeft,
+  Target,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import jwtDecode from "jwt-decode";
@@ -120,6 +121,8 @@ function AddActivity() {
           },
         }
       );
+      if (response.status === 401) {
+      }
       console.log("Activity added:", response.data); // Log response from backend
       navigate(`/dashboard/${username}`); // Redirect to the user's dashboard
     } catch (error) {
@@ -129,6 +132,10 @@ function AddActivity() {
       }
       console.error("Error adding activity:", error);
     }
+  };
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
   return (
@@ -140,23 +147,23 @@ function AddActivity() {
       <nav className={`p-4 ${darkMode ? "bg-gray-800" : "bg-white"} shadow-lg`}>
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Activity
-              className={`h-6 w-6 ${darkMode ? "text-white" : "text-gray-800"}`}
-            />
+            <Link
+              to={`/dashboard/${name}`}
+              className="text-blue-500 hover:text-blue-600 flex items-center gap-1"
+            >
+              <Target
+                className={`w-8 h-8 ${
+                  darkMode ? "text-indigo-400" : "text-indigo-600"
+                }`}
+              />
+            </Link>
             <h1
               className={`text-xl font-bold ${
                 darkMode ? "text-white" : "text-gray-800"
               }`}
             >
-              Dashboard
+              Add Activity
             </h1>
-            <Link
-              to={`/dashboard/${name}`}
-              className="text-blue-500 hover:text-blue-600 flex items-center gap-1"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Go To Dashboard
-            </Link>
           </div>
           {/* <Link to="/dashboard/:name"> Go To Homepage</Link> */}
           <div className="flex items-center gap-4">
@@ -187,7 +194,10 @@ function AddActivity() {
               >
                 Hi! {name}
               </span>
-              <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
                 Logout
               </button>
             </div>

@@ -354,6 +354,134 @@ router.post('/removeFriend', jwtAuth, async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 })
+router.post('/sendChallenge', jwtAuth, async (req, res) => {
+    try {
+        const senderId = req.user.id;
+        const { activityId, friendIds } = req.body;
+
+        const sender = await User.findById(senderId);
+        if (!sender) {
+            return res.status(404).json({ message: "Sender not found" });
+        }
+
+        const activity = await Activity.findById(activityId);
+        if (!activity) {
+            return res.status(404).json({ message: "Activity not found" });
+        }
+
+        // Create challenges for each friend
+        const challenges = await Promise.all(
+            friendIds.map(async (friendId) => {
+                const challenge = new Challenge({
+                    activityId,
+                    activityName: activity.name,
+                    senderId,
+                    senderName: sender.name,
+                    receiverId: friendId,
+                    status: 'pending',
+                    createdAt: new Date()
+                });
+                await challenge.save();
+
+                // Emit socket event to the receiver
+                const io = req.app.get('io');
+                io.to(friendId).emit('challengeReceived', {
+                    challengeId: challenge._id,
+                    senderName: sender.name,
+                    activityName: activity.name
+                });
+
+                return challenge;
+            })
+        );
+
+        res.status(200).json({ message: "Challenges sent successfully", challenges });
+    } catch (error) {
+        console.error("Error sending challenges:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+router.get('/getChallenges', jwtAuth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const challenges = await User.find({
+            receiverId: userId,
+            status: 'pending'
+        }).sort('-createdAt');
+
+        res.status(200).json({ challenges });
+    } catch (error) {
+        console.error("Error fetching challenges:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+router.post('/acceptChallenge', jwtAuth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { challengeId } = req.body;
+
+        const challenge = await Challenge.findById(challengeId);
+        if (!challenge) {
+            return res.status(404).json({ message: "Challenge not found" });
+        }
+
+        if (challenge.receiverId.toString() !== userId) {
+            return res.status(403).json({ message: "Not authorized to accept this challenge" });
+        }
+
+        // Update challenge status
+        challenge.status = 'accepted';
+        await challenge.save();
+
+        // Add activity to user's activities
+        const user = await User.findById(userId);
+        const activity = await Activity.findById(challenge.activityId);
+
+        user.activities.push({
+            name: activity.name,
+            frequency: activity.frequency,
+            wantReminders: activity.wantReminders,
+            completed: false
+        });
+        await user.save();
+
+        // Notify the sender
+        const io = req.app.get('io');
+        io.to(challenge.senderId).emit('challengeAccepted', {
+            challengeId: challenge._id,
+            friendName: user.name
+        });
+
+        res.status(200).json({ message: "Challenge accepted successfully" });
+    } catch (error) {
+        console.error("Error accepting challenge:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+router.post('/rejectChallenge', jwtAuth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { challengeId } = req.body;
+
+        const challenge = await Challenge.findById(challengeId);
+        if (!challenge) {
+            return res.status(404).json({ message: "Challenge not found" });
+        }
+
+        if (challenge.receiverId.toString() !== userId) {
+            return res.status(403).json({ message: "Not authorized to reject this challenge" });
+        }
+
+        challenge.status = 'rejected';
+        await challenge.save();
+
+        res.status(200).json({ message: "Challenge rejected successfully" });
+    } catch (error) {
+        console.error("Error rejecting challenge:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
 
 
 // router.post('/Logout', jwtAuth, async (req, res) => {  

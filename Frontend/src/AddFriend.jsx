@@ -15,6 +15,7 @@ import {
   Users,
   UserMinus,
   User,
+  Target,
 } from "lucide-react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
@@ -480,9 +481,16 @@ function AddFriend() {
       <nav className={`p-4 ${darkMode ? "bg-gray-800" : "bg-white"} shadow-lg`}>
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <Activity
-              className={`h-6 w-6 ${darkMode ? "text-white" : "text-gray-800"}`}
-            />
+            <Link
+              to={`/dashboard/${userName}`}
+              className="text-blue-500 hover:text-blue-600 flex items-center gap-1"
+            >
+              <Target
+                className={`w-8 h-8 ${
+                  darkMode ? "text-indigo-400" : "text-indigo-600"
+                }`}
+              />
+            </Link>
             <h1
               className={`text-xl font-bold ${
                 darkMode ? "text-white" : "text-gray-800"
@@ -490,13 +498,6 @@ function AddFriend() {
             >
               Friends
             </h1>
-            <Link
-              to={`/dashboard/${userName}`}
-              className="text-blue-500 hover:text-blue-600 flex items-center gap-1"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Go To Dashboard
-            </Link>
           </div>
           <div className="flex items-center gap-4">
             <div

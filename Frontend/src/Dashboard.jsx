@@ -15,10 +15,12 @@ import {
   Sun,
   ArrowRight,
   Users,
+  Target,
 } from "lucide-react";
-
+import "./index.css";
 import jwtDecode from "jwt-decode";
 import { Link, useNavigate } from "react-router-dom";
+import { LineChartIcon } from "lucide-react";
 
 const Dashboard = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -60,6 +62,10 @@ const Dashboard = () => {
 
     return () => clearTimeout(timer);
   }, []);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
 
   return (
     <div
@@ -76,6 +82,11 @@ const Dashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
+              <Target
+                className={`w-8 h-8 ${
+                  darkMode ? "text-indigo-400" : "text-indigo-600"
+                }`}
+              />
               <h1
                 className={`text-xl font-bold ${
                   darkMode ? "text-white" : "text-gray-900"
@@ -93,18 +104,27 @@ const Dashboard = () => {
             </div>
 
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`p-2 rounded-lg ${
-                  darkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
-                }`}
-              >
-                {darkMode ? (
-                  <Sun className="w-5 h-5 text-white" />
-                ) : (
-                  <Moon className="w-5 h-5 text-gray-700" />
-                )}
-              </button>
+              <label className="switch">
+                <span className="sun">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <g fill="#ffd43b">
+                      <circle r={5} cy={12} cx={12} />
+                      <path d="m21 13h-1a1 1 0 0 1 0-2h1a1 1 0 0 1 0 2zm-17 0h-1a1 1 0 0 1 0-2h1a1 1 0 0 1 0 2zm13.66-5.66a1 1 0 0 1 -.66-.29 1 1 0 0 1 0-1.41l.71-.71a1 1 0 1 1 1.41 1.41l-.71.71a1 1 0 0 1 -.75.29zm-12.02 12.02a1 1 0 0 1 -.71-.29 1 1 0 0 1 0-1.41l.71-.66a1 1 0 0 1 1.41 1.41l-.71.71a1 1 0 0 1 -.7.24zm6.36-14.36a1 1 0 0 1 -1-1v-1a1 1 0 0 1 2 0v1a1 1 0 0 1 -1 1zm0 17a1 1 0 0 1 -1-1v-1a1 1 0 0 1 2 0v1a1 1 0 0 1 -1 1zm-5.66-14.66a1 1 0 0 1 -.7-.29l-.71-.71a1 1 0 0 1 1.41-1.41l.71.71a1 1 0 0 1 0 1.41 1 1 0 0 1 -.71.29zm12.02 12.02a1 1 0 0 1 -.7-.29l-.66-.71a1 1 0 0 1 1.36-1.36l.71.71a1 1 0 0 1 0 1.41 1 1 0 0 1 -.71.24z" />
+                    </g>
+                  </svg>
+                </span>
+                <span className="moon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+                    <path d="m223.5 32c-123.5 0-223.5 100.3-223.5 224s100 224 223.5 224c60.6 0 115.5-24.2 155.8-63.4 5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6-96.9 0-175.5-78.8-175.5-176 0-65.8 36-123.1 89.3-153.3 6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z" />
+                  </svg>
+                </span>
+                <input
+                  type="checkbox"
+                  className="input"
+                  onChange={() => setDarkMode(!darkMode)}
+                />
+                <span className="slider" />
+              </label>
               <div className="relative">
                 <Bell
                   className={`w-6 h-6 ${
@@ -120,15 +140,14 @@ const Dashboard = () => {
                   darkMode ? "text-white" : "text-gray-700"
                 }`}
               />
-              <button
-                className={`flex items-center px-3 py-2 rounded-md ${
-                  darkMode
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-red-500 hover:bg-red-600"
-                } text-white`}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
+              <button class="Btn" onClick={handleLogout}>
+                <div class="sign">
+                  <svg viewBox="0 0 512 512">
+                    <path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"></path>
+                  </svg>
+                </div>
+
+                <div class="text">Logout</div>
               </button>
             </div>
           </div>
@@ -176,7 +195,7 @@ const Dashboard = () => {
             >
               <Link to="/dashboard/:name/add">
                 <div className="h-full flex flex-col items-center justify-center">
-                  <Run
+                  <LineChartIcon
                     className={`w-12 h-12 ${
                       darkMode ? "text-gray-200" : "text-gray-700"
                     } transition-colors duration-300 hover:text-blue-${
@@ -289,8 +308,9 @@ const Dashboard = () => {
             </Link>
 
             {/* Bottom Row */}
-            <div
-              className={`
+            <Link to="/dashboard/:name/challenge">
+              <div
+                className={`
               aspect-square
               ${
                 darkMode
@@ -302,32 +322,33 @@ const Dashboard = () => {
               transform hover:scale-105 cursor-pointer
               group
             `}
-            >
-              <div className="h-full flex flex-col items-center justify-center">
-                <Zap
-                  className={`w-12 h-12 ${
-                    darkMode ? "text-gray-200" : "text-gray-700"
-                  } transition-colors duration-300 hover:text-lime-${
-                    darkMode ? "400" : "600"
-                  }`}
-                />
-                <div className="flex items-center space-x-2 mt-4 transition-transform duration-300 transform group-hover:translate-x-2">
-                  <h3
-                    className={`text-lg font-medium ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    } 
-                    transition-all duration-300 group-hover:text-xl`}
-                  >
-                    Challenge a Friend
-                  </h3>
-                  <ArrowRight
-                    className={`w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
-                      darkMode ? "text-white" : "text-gray-900"
+              >
+                <div className="h-full flex flex-col items-center justify-center">
+                  <Zap
+                    className={`w-12 h-12 ${
+                      darkMode ? "text-gray-200" : "text-gray-700"
+                    } transition-colors duration-300 hover:text-lime-${
+                      darkMode ? "400" : "600"
                     }`}
                   />
+                  <div className="flex items-center space-x-2 mt-4 transition-transform duration-300 transform group-hover:translate-x-2">
+                    <h3
+                      className={`text-lg font-medium ${
+                        darkMode ? "text-white" : "text-gray-900"
+                      } 
+                    transition-all duration-300 group-hover:text-xl`}
+                    >
+                      Challenge a Friend
+                    </h3>
+                    <ArrowRight
+                      className={`w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                        darkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* Heatmap Tile - Double Width */}
             <div
