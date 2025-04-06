@@ -216,14 +216,20 @@ function ChallengeActivity() {
 
   const handleAcceptChallenge = async (challengeId) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.post(
+      const token = localStorage.getItem("token"); // Make sure the token is set properly in localStorage
+
+      if (!token) {
+        throw new Error("Token not found");
+      }
+
+      const response = await axios.post(
         "http://localhost:3000/User/acceptChallenge",
         { challengeId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       toast.success("Challenge accepted!");
-      fetchChallenges();
+      fetchChallenges(); // Assuming this fetches the updated list of challenges
     } catch (error) {
       console.error("Error accepting challenge:", error);
       toast.error("Failed to accept challenge");

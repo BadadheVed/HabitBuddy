@@ -444,32 +444,30 @@ router.get('/getChallenges', jwtAuth, async (req, res) => {
     try {
         const userId = req.user.id;
 
-
+        // Fetch pending challenges for the user as a receiver
         const challenges = await Challenge.find({
             receiverId: userId,
             status: 'pending'
         }).sort('-createdAt');
 
-        // Manually populate activityName and senderName
-        const challengesWithDetails = await Promise.all(challenges.map(async (challenge) => {
-            // Find the sender's details (e.g., sender's name)
-            const sender = await User.findById(challenge.senderId, 'name');
+        // Populate senderId, but no need to populate 'activityId' since it's embedded in the user
+        const challengesWithUserData = await Promise.all(
+            challenges.map(async (challenge) => {
+                // Find the sender user data
+                const sender = await User.findById(challenge.senderId);
 
+                // Add activity data directly from the embedded activities
+                const activity = sender.activities.find(act => act._id.toString() === challenge.activityId.toString());
 
-            const activity = await User.aggregate([
-                { $unwind: '$activities' },
-                { $match: { 'activities._id': challenge.activityId } },
-                { $project: { 'activities.name': 1 } }
-            ]);
+                return {
+                    ...challenge.toObject(),
+                    sender: sender.name, // or any other sender details you need
+                    activity: activity // Return the activity embedded within the sender
+                };
+            })
+        );
 
-            return {
-                ...challenge.toObject(),
-                senderName: sender.name,
-                activityName: activity.length > 0 ? activity[0].activities.name : null
-            };
-        }));
-
-        res.status(200).json({ challenges: challengesWithDetails });
+        res.status(200).json({ challenges: challengesWithUserData });
     } catch (error) {
         console.error("Error fetching challenges:", error);
         res.status(500).json({ message: "Server error" });
