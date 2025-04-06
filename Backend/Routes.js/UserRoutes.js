@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt')
 const { jwtAuth, generateToken } = require('./jwt')
 const router = express.Router();
 const User = require('../Models/User')
-
+const Challenge = require('../Models/Challenges')
 const socketIO = require('socket.io')
 
 
@@ -24,7 +24,7 @@ router.post('/Signup', async (req, res) => {
         const existinguser = await User.findOne({ email });
         if (existinguser) return res.status(400).json({ Error: "User Already Exists" });
 
-        // Hash password before saving
+
         // const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({ name, email, password });
 
@@ -76,13 +76,13 @@ router.post('/resetPassword', async (req, res) => {
     try {
         const { email, newPassword } = req.body;
 
-        // Find user by email
+
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        // Check if new password is same as old password
+
         const isSamePassword = await user.comparePass(newPassword);
         if (isSamePassword) {
             return res.status(400).json({ message: "New password cannot be the same as the old password" });
@@ -116,7 +116,7 @@ router.post('/addActivity', jwtAuth, async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Destructure 'data' from the request body
+
         const { name, frequency, wantReminders } = req.body;
 
         if (!name || !frequency || !Array.isArray(frequency)) {
@@ -129,13 +129,13 @@ router.post('/addActivity', jwtAuth, async (req, res) => {
             return res.status(400).json({ message: 'Invalid frequency days, please use valid weekdays (Mon, Tue, etc.)' });
         }
 
-        // Check if the activity already exists
+
         const existingActivity = user.activities.find(activity => activity.name === name && activity.frequency.every(day => frequency.includes(day)));
         if (existingActivity) {
             return res.status(400).json({ message: 'Activity already exists with the same name and frequency' });
         }
 
-        // Create the new activity object, including the 'wantReminders' field
+
         const newActivity = {
             name: name,
             frequency: frequency,
@@ -144,7 +144,7 @@ router.post('/addActivity', jwtAuth, async (req, res) => {
             completedAt: null
         };
 
-        // Push the new activity to the user's activities array
+
         user.activities.push(newActivity);
         await user.save();
 
@@ -192,14 +192,13 @@ router.put('/activities/:id', jwtAuth, async (req, res) => {
 });
 router.post('/AddFriend', jwtAuth, async (req, res) => {
     try {
-        const senderId = req.user.id; // Get sender ID from JWT
-        const { userId, userName } = req.body; // Get receiver's ID and Name from request body
+        const senderId = req.user.id;
+        const { userId, userName } = req.body;
 
         if (!userId || !userName) {
             return res.status(400).json({ message: "User ID and Name are required" });
         }
 
-        // Find the receiver user
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
@@ -213,7 +212,7 @@ router.post('/AddFriend', jwtAuth, async (req, res) => {
             return res.status(400).json({ message: "Friend request already sent" });
         }
 
-        // Save friend request with senderId and senderName
+
         user.friendRequests.push({ sender: senderId, status: "pending" });
         await user.save();
 
@@ -238,7 +237,7 @@ router.get('/getUsers', jwtAuth, async (req, res) => {
 
             users = await User.find({ _id: query }).select('name email _id');
         } else {
-            // Search by name if not an ObjectId
+
             users = await User.find({
                 name: { $regex: query, $options: 'i' }
             }).select('name email _id');
@@ -391,12 +390,14 @@ router.post('/sendChallenge', jwtAuth, async (req, res) => {
         const senderId = req.user.id;
         const { activityId, friendIds } = req.body;
 
+        // Find the sender user document
         const sender = await User.findById(senderId);
         if (!sender) {
             return res.status(404).json({ message: "Sender not found" });
         }
 
-        const activity = await Activity.findById(activityId);
+        // Find the activity in the sender's embedded activities array
+        const activity = sender.activities.id(activityId);  // This will search by the activity's _id
         if (!activity) {
             return res.status(404).json({ message: "Activity not found" });
         }
@@ -413,7 +414,13 @@ router.post('/sendChallenge', jwtAuth, async (req, res) => {
                     status: 'pending',
                     createdAt: new Date()
                 });
-                await challenge.save();
+
+                try {
+                    await challenge.save();
+                } catch (saveError) {
+                    console.error("Error saving challenge:", saveError);
+                    throw new Error("Error saving challenge");
+                }
 
                 // Emit socket event to the receiver
                 const io = req.app.get('io');
@@ -430,18 +437,39 @@ router.post('/sendChallenge', jwtAuth, async (req, res) => {
         res.status(200).json({ message: "Challenges sent successfully", challenges });
     } catch (error) {
         console.error("Error sending challenges:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: "Server error", error: error.message, stack: error.stack });
     }
 });
 router.get('/getChallenges', jwtAuth, async (req, res) => {
     try {
         const userId = req.user.id;
-        const challenges = await User.find({
+
+
+        const challenges = await Challenge.find({
             receiverId: userId,
             status: 'pending'
         }).sort('-createdAt');
 
-        res.status(200).json({ challenges });
+        // Manually populate activityName and senderName
+        const challengesWithDetails = await Promise.all(challenges.map(async (challenge) => {
+            // Find the sender's details (e.g., sender's name)
+            const sender = await User.findById(challenge.senderId, 'name');
+
+
+            const activity = await User.aggregate([
+                { $unwind: '$activities' },
+                { $match: { 'activities._id': challenge.activityId } },
+                { $project: { 'activities.name': 1 } }
+            ]);
+
+            return {
+                ...challenge.toObject(),
+                senderName: sender.name,
+                activityName: activity.length > 0 ? activity[0].activities.name : null
+            };
+        }));
+
+        res.status(200).json({ challenges: challengesWithDetails });
     } catch (error) {
         console.error("Error fetching challenges:", error);
         res.status(500).json({ message: "Server error" });
@@ -449,42 +477,40 @@ router.get('/getChallenges', jwtAuth, async (req, res) => {
 });
 router.post('/acceptChallenge', jwtAuth, async (req, res) => {
     try {
-        const userId = req.user.id;
         const { challengeId } = req.body;
+        const userId = req.user.id;
+
 
         const challenge = await Challenge.findById(challengeId);
         if (!challenge) {
             return res.status(404).json({ message: "Challenge not found" });
         }
 
+
         if (challenge.receiverId.toString() !== userId) {
-            return res.status(403).json({ message: "Not authorized to accept this challenge" });
+            return res.status(403).json({ message: "This challenge is not for you" });
         }
 
-        // Update challenge status
+
         challenge.status = 'accepted';
         await challenge.save();
 
-        // Add activity to user's activities
+
         const user = await User.findById(userId);
-        const activity = await Activity.findById(challenge.activityId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
-        user.activities.push({
-            name: activity.name,
-            frequency: activity.frequency,
-            wantReminders: activity.wantReminders,
-            completed: false
-        });
-        await user.save();
 
-        // Notify the sender
-        const io = req.app.get('io');
-        io.to(challenge.senderId).emit('challengeAccepted', {
-            challengeId: challenge._id,
-            friendName: user.name
-        });
 
-        res.status(200).json({ message: "Challenge accepted successfully" });
+        const activity = user.activities.find(activity => activity._id.toString() === challenge.activityId.toString());
+        if (activity) {
+            activity.completed = true;
+            activity.completedAt = new Date();
+            await user.save();
+        }
+
+        res.status(200).json({ message: "Challenge accepted" });
     } catch (error) {
         console.error("Error accepting challenge:", error);
         res.status(500).json({ message: "Server error" });
@@ -492,22 +518,25 @@ router.post('/acceptChallenge', jwtAuth, async (req, res) => {
 });
 router.post('/rejectChallenge', jwtAuth, async (req, res) => {
     try {
-        const userId = req.user.id;
         const { challengeId } = req.body;
+        const userId = req.user.id;
+
 
         const challenge = await Challenge.findById(challengeId);
         if (!challenge) {
             return res.status(404).json({ message: "Challenge not found" });
         }
 
+
         if (challenge.receiverId.toString() !== userId) {
-            return res.status(403).json({ message: "Not authorized to reject this challenge" });
+            return res.status(403).json({ message: "This challenge is not for you" });
         }
+
 
         challenge.status = 'rejected';
         await challenge.save();
 
-        res.status(200).json({ message: "Challenge rejected successfully" });
+        res.status(200).json({ message: "Challenge rejected" });
     } catch (error) {
         console.error("Error rejecting challenge:", error);
         res.status(500).json({ message: "Server error" });
@@ -526,29 +555,44 @@ router.get('/activityHeatmap', jwtAuth, async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        // Get all completed activities for the specified year
-        const startDate = new Date(year, 0, 1);
-        const endDate = new Date(year, 11, 31);
 
-        const completedActivities = user.activities
-            .filter(activity =>
-                activity.completedAt &&
-                new Date(activity.completedAt) >= startDate &&
-                new Date(activity.completedAt) <= endDate
-            )
-            .reduce((acc, activity) => {
-                const date = new Date(activity.completedAt).toISOString().split('T')[0];
-                acc[date] = (acc[date] || 0) + 1;
-                return acc;
-            }, {});
+        const activities = user.activities || [];
 
-        // Convert to array format
-        const activities = Object.entries(completedActivities).map(([date, count]) => ({
+
+        const activityCountsByDate = {};
+
+
+        activities.forEach(activity => {
+
+            if (activity.completedAt) {
+                const completedDate = new Date(activity.completedAt);
+
+
+                if (completedDate.getFullYear() === year) {
+                    const dateStr = completedDate.toISOString().split('T')[0];
+                    activityCountsByDate[dateStr] = (activityCountsByDate[dateStr] || 0) + 1;
+                }
+            }
+
+
+            if (activity.lastCompletedDate) {
+                const lastCompletedDate = new Date(activity.lastCompletedDate);
+
+
+                if (lastCompletedDate.getFullYear() === year) {
+                    const dateStr = lastCompletedDate.toISOString().split('T')[0];
+                    activityCountsByDate[dateStr] = (activityCountsByDate[dateStr] || 0) + 1;
+                }
+            }
+        });
+
+
+        const formattedActivities = Object.entries(activityCountsByDate).map(([date, count]) => ({
             date,
             count
         }));
 
-        res.status(200).json({ activities });
+        res.status(200).json({ activities: formattedActivities });
     } catch (error) {
         console.error("Error fetching activity heatmap:", error);
         res.status(500).json({ message: "Server error" });

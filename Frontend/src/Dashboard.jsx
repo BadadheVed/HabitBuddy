@@ -67,33 +67,41 @@ const Dashboard = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
-  const fetchFriendRequests = async () => {
+  const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
+
+      // Fetch friend requests
+      const friendReqRes = await axios.get(
         "http://localhost:3000/User/getRequest",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      if (
-        response.data.friendRequests &&
-        response.data.friendRequests.length > 0
-      ) {
-        setHasNotification(true);
-      } else {
-        setHasNotification(false);
-      }
+
+      // Fetch challenges
+      const challengeRes = await axios.get(
+        "http://localhost:3000/User/getChallenges",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const hasFriendRequests =
+        friendReqRes.data.friendRequests &&
+        friendReqRes.data.friendRequests.length > 0;
+
+      const hasChallenges =
+        challengeRes.data.challenges && challengeRes.data.challenges.length > 0;
+
+      setHasNotification(hasFriendRequests || hasChallenges);
     } catch (error) {
-      console.error("Error fetching friend requests:", error);
+      console.error("Error fetching notifications:", error);
     }
   };
+
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchFriendRequests();
-    }, 1000); // Fetch every 5 seconds
+      fetchNotifications();
+    }, 1000); // 1 second polling
 
-    return () => clearInterval(interval); // Cleanup on unmount
+    return () => clearInterval(interval);
   }, []);
 
   return (

@@ -3,12 +3,10 @@ import {
   Sun,
   Moon,
   Bell,
-  Activity,
-  ArrowLeft,
+  Target,
   Calendar,
   Clock,
   ChevronDown,
-  Target,
 } from "lucide-react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
@@ -76,10 +74,11 @@ function HeatMap() {
 
   const getColorForCount = (count) => {
     if (count === 0) return darkMode ? "bg-gray-800" : "bg-gray-100";
-    if (count === 1) return "bg-[#1F7D53]";
-    if (count >= 2 && count <= 4) return "bg-[#85A947]";
-    return "bg-[#C2FFC7]";
+    if (count === 1) return "bg-[#1F7D53]"; // Light green
+    if (count >= 2 && count <= 3) return "bg-[#85A947]"; // Medium green
+    return "bg-[#C2FFC7]"; // Bright green
   };
+
   const fetchFriendRequests = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -101,16 +100,33 @@ function HeatMap() {
       console.error("Error fetching friend requests:", error);
     }
   };
+
   useEffect(() => {
     const interval = setInterval(() => {
       fetchFriendRequests();
-    }, 100); // Fetch every 5 seconds
+    }, 5000); // Fetch every 5 seconds
 
     return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 
-  const generateCalendar = () => {
-    const today = new Date();
+  // Generate GitHub-style contribution graph
+  const generateGitHubStyleGraph = () => {
+    const startDate = new Date(selectedYear, 0, 1); // January 1st of selected year
+    const endDate = new Date(selectedYear, 11, 31); // December 31st of selected year
+
+    // Calculate total days in the year
+    const totalDays =
+      Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+
+    // Create array of all dates in the year
+    const allDates = Array.from({ length: totalDays }, (_, i) => {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+      return date;
+    });
+
+    // Group dates by month for display
+    const monthsData = {};
     const months = [
       "Jan",
       "Feb",
@@ -126,69 +142,193 @@ function HeatMap() {
       "Dec",
     ];
 
-    // Generate array of days (1-31)
-    const days = Array.from({ length: 31 }, (_, i) => i + 1);
+    months.forEach((month) => {
+      monthsData[month] = [];
+    });
+
+    allDates.forEach((date) => {
+      const month = months[date.getMonth()];
+      monthsData[month].push(date);
+    });
+
+    // Count total submissions
+    const totalSubmissions = activityData.reduce(
+      (sum, day) => sum + day.count,
+      0
+    );
+
+    // Calculate total active days
+    const activeDays = activityData.filter((day) => day.count > 0).length;
+
+    // Calculate max streak (this is simplified - a real implementation would need to check consecutive days)
+    let maxStreak = 0;
+    let currentStreak = 0;
+    let previousDate = null;
+
+    activityData
+      .filter((day) => day.count > 0)
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .forEach((day) => {
+        const currentDate = new Date(day.date);
+
+        if (previousDate) {
+          const dayDiff = (currentDate - previousDate) / (1000 * 60 * 60 * 24);
+          if (dayDiff === 1) {
+            currentStreak++;
+          } else {
+            currentStreak = 1;
+          }
+        } else {
+          currentStreak = 1;
+        }
+
+        maxStreak = Math.max(maxStreak, currentStreak);
+        previousDate = currentDate;
+      });
 
     return (
-      <div className="relative">
-        {/* Month headers */}
-        <div className="grid grid-cols-12 gap-1 mb-2">
-          {months.map((month) => (
+      <div
+        className={`p-6 rounded-xl ${
+          darkMode ? "bg-gray-800" : "bg-white"
+        } shadow-lg`}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <span
+              className={`text-lg font-medium ${
+                darkMode ? "text-gray-300" : "text-gray-700"
+              }`}
+            >
+              {totalSubmissions} activities in the past one year
+            </span>
+          </div>
+          <div className="flex items-center space-x-4">
+            <span className={`${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+              Total active days: {activeDays}
+            </span>
+            <span className={`${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+              Max streak: {maxStreak}
+            </span>
+            <div className="relative inline-block">
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className={`appearance-none px-4 py-2 pr-8 rounded-lg ${
+                  darkMode
+                    ? "bg-gray-700 text-white border-gray-600"
+                    : "bg-gray-50 text-gray-800 border-gray-200"
+                } border focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              >
+                <option value={selectedYear}>Current</option>
+                {Array.from(
+                  { length: new Date().getFullYear() - registrationYear + 1 },
+                  (_, i) => new Date().getFullYear() - i
+                ).map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                className={`absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
+                  darkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <div className="flex">
+            {months.map((month) => (
+              <div key={month} className="flex flex-col mr-1">
+                <div
+                  className={`text-xs mb-1 ${
+                    darkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  {month}
+                </div>
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({
+                    length: Math.ceil(monthsData[month].length / 7),
+                  }).map((_, weekIndex) => (
+                    <div
+                      key={`${month}-week-${weekIndex}`}
+                      className="flex flex-col gap-1"
+                    >
+                      {monthsData[month]
+                        .slice(weekIndex * 7, (weekIndex + 1) * 7)
+                        .map((date) => {
+                          const dateStr = date.toISOString().split("T")[0];
+                          const dayData = activityData.find(
+                            (d) => d.date === dateStr
+                          );
+                          const count = dayData?.count || 0;
+
+                          return (
+                            <div
+                              key={dateStr}
+                              className={`w-3 h-3 rounded-sm ${getColorForCount(
+                                count
+                              )}`}
+                              title={`${dateStr}: ${count} activities completed`}
+                            />
+                          );
+                        })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center gap-6">
+          <div className="flex items-center gap-2">
             <div
-              key={month}
-              className={`text-center text-sm font-medium ${
+              className={`w-3 h-3 rounded-sm ${
+                darkMode ? "bg-gray-800" : "bg-gray-100"
+              }`}
+            />
+            <span
+              className={`text-xs ${
                 darkMode ? "text-gray-400" : "text-gray-600"
               }`}
             >
-              {month}
-            </div>
-          ))}
-        </div>
-
-        {/* Days grid */}
-        <div className="grid grid-rows-31 gap-1">
-          {days.map((day) => (
-            <div key={day} className="grid grid-cols-12 gap-1">
-              {months.map((month, monthIndex) => {
-                const date = new Date(selectedYear, monthIndex, day);
-                const isValidDate = date.getDate() === day; // Check if day exists in month
-                const isPastDate = date <= today;
-                const isSelectedYearCurrent =
-                  selectedYear === today.getFullYear();
-                const shouldShow =
-                  isValidDate && (!isSelectedYearCurrent || isPastDate);
-
-                if (!isValidDate)
-                  return <div key={`${month}-${day}`} className="w-4 h-4" />;
-
-                if (!shouldShow) {
-                  return (
-                    <div
-                      key={`${month}-${day}`}
-                      className={`w-4 h-4 rounded-sm ${
-                        darkMode ? "bg-gray-900" : "bg-gray-50"
-                      }`}
-                    />
-                  );
-                }
-
-                const dateStr = date.toISOString().split("T")[0];
-                const dayData = activityData.find((d) => d.date === dateStr);
-
-                return (
-                  <div
-                    key={`${month}-${day}`}
-                    className={`w-4 h-4 rounded-sm ${getColorForCount(
-                      dayData?.count || 0
-                    )}`}
-                    title={`${dateStr}: ${
-                      dayData?.count || 0
-                    } activities completed`}
-                  />
-                );
-              })}
-            </div>
-          ))}
+              No activities
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-sm bg-[#1F7D53]" />
+            <span
+              className={`text-xs ${
+                darkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              1 activity
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-sm bg-[#85A947]" />
+            <span
+              className={`text-xs ${
+                darkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              2-3 activities
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-sm bg-[#C2FFC7]" />
+            <span
+              className={`text-xs ${
+                darkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              4+ activities
+            </span>
+          </div>
         </div>
       </div>
     );
@@ -209,11 +349,6 @@ function HeatMap() {
       minute: "2-digit",
     });
   };
-
-  const availableYears = Array.from(
-    { length: new Date().getFullYear() - registrationYear + 1 },
-    (_, i) => new Date().getFullYear() - i
-  );
 
   return (
     <div
@@ -273,7 +408,12 @@ function HeatMap() {
               <input
                 type="checkbox"
                 className="input"
-                onChange={() => setDarkMode(!darkMode)}
+                checked={darkMode}
+                onChange={() => {
+                  const newMode = !darkMode;
+                  setDarkMode(newMode);
+                  localStorage.setItem("darkMode", newMode);
+                }}
               />
               <span className="slider" />
             </label>
@@ -316,78 +456,16 @@ function HeatMap() {
           >
             {userName}'s Activity Heatmap
           </h1>
-          <h3
+          <p
             className={`text-lg ${
               darkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >
             ID: {userId}
-          </h3>
+          </p>
         </div>
 
-        <div className="mb-6">
-          <div className="relative inline-block">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className={`appearance-none px-4 py-2 pr-8 rounded-lg ${
-                darkMode
-                  ? "bg-gray-800 text-white border-gray-700"
-                  : "bg-white text-gray-800 border-gray-300"
-              } border focus:outline-none focus:ring-2 focus:ring-blue-500`}
-            >
-              {availableYears.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              className={`absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
-                darkMode ? "text-gray-400" : "text-gray-600"
-              }`}
-            />
-          </div>
-        </div>
-
-        <div
-          className={`p-8 rounded-xl ${
-            darkMode ? "bg-gray-800" : "bg-white"
-          } shadow-lg overflow-x-auto`}
-        >
-          {generateCalendar()}
-
-          <div className="mt-6 flex items-center gap-8">
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-4 h-4 rounded-sm ${
-                  darkMode ? "bg-gray-800" : "bg-gray-100"
-                }`}
-              />
-              <span className={darkMode ? "text-gray-400" : "text-gray-600"}>
-                No activities
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-sm bg-[#1F7D53]" />
-              <span className={darkMode ? "text-gray-400" : "text-gray-600"}>
-                1 activity
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-sm bg-[#85A947]" />
-              <span className={darkMode ? "text-gray-400" : "text-gray-600"}>
-                2-4 activities
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-sm bg-[#C2FFC7]" />
-              <span className={darkMode ? "text-gray-400" : "text-gray-600"}>
-                4+ activities
-              </span>
-            </div>
-          </div>
-        </div>
+        {generateGitHubStyleGraph()}
       </div>
     </div>
   );
