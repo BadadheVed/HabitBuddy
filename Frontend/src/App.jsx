@@ -14,6 +14,7 @@ import ChallengeActivity from "./ChallengeFriend";
 import HeatMap from "./Heatmap";
 import Notifications from "./Notifications";
 import Profile from "./Profile";
+import ForgotPassword from "./ForgotPass";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -23,6 +24,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route
           path="/dashboard/:name"
           element={

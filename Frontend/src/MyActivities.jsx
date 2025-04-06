@@ -18,6 +18,7 @@ import jwtDecode from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import "./index.css";
+
 function MyActivities() {
   const [darkMode, setDarkMode] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
@@ -34,7 +35,7 @@ function MyActivities() {
   useEffect(() => {
     const fetchActivities = async () => {
       try {
-        const token = localStorage.getItem("token"); // Assuming JWT token is stored in localStorage
+        const token = localStorage.getItem("token");
         const response = await axios.get(
           "http://localhost:3000/User/activities",
           {
@@ -43,7 +44,6 @@ function MyActivities() {
           }
         );
         setActivities(response.data);
-        // Set the fetched activities
       } catch (error) {
         console.error("Error fetching activities", error);
       }
@@ -51,6 +51,7 @@ function MyActivities() {
 
     fetchActivities();
   }, []);
+
   useEffect(() => {
     const verifyAuth = async () => {
       try {
@@ -158,14 +159,11 @@ function MyActivities() {
       const activityToUpdate = activities.find(
         (activity) => activity._id === id
       );
-      console.log("Clicked Activity ID:", id);
-      console.log("All Activities:", activities);
       if (!activityToUpdate.completed) {
         triggerConfetti();
         activityToUpdate.completed = true;
         activityToUpdate.lastCompletedDate = new Date().toISOString();
 
-        // Update on the backend
         const token = localStorage.getItem("token");
         await axios.put(
           `http://localhost:3000/User/activities/${id}`,
@@ -179,7 +177,6 @@ function MyActivities() {
           }
         );
 
-        // Update state locally
         setActivities((prev) =>
           prev.map((activity) =>
             activity._id === id
@@ -202,12 +199,33 @@ function MyActivities() {
     return activity.frequency.includes(today);
   };
 
-  const filteredActivities = activities.filter((activity) => {
-    const matchesCompletionStatus = activity.completed === showCompleted;
-    const matchesTimeFilter =
-      timeFilter === "today" ? isActivityDue(activity) : true;
-    return matchesCompletionStatus && matchesTimeFilter;
-  });
+  const isActivityForToday = (activity) => {
+    return activity.frequency.includes(getCurrentDayName());
+  };
+
+  const getDayStatus = (day, activity) => {
+    const today = getCurrentDayName();
+    const yesterday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][
+      (currentTime.getDay() + 6) % 7
+    ];
+
+    if (activity.completed && day === today) {
+      return "completed";
+    } else if (!activity.completed && day === yesterday) {
+      return "missed";
+    } else if (day === today) {
+      return "today";
+    }
+    return "normal";
+  };
+
+  const todayActivities = activities.filter(
+    (activity) => isActivityForToday(activity) && !activity.completed
+  );
+
+  const otherActivities = activities.filter(
+    (activity) => !isActivityForToday(activity) || activity.completed
+  );
 
   const calculateProgress = (activities) => {
     if (activities.length === 0) return 0;
@@ -215,12 +233,14 @@ function MyActivities() {
     const totalDueActivities = activities.filter((activity) =>
       isActivityDue(activity)
     );
-    if (totalDueActivities.length === 0) return 0; // Avoid division by zero
+    if (totalDueActivities.length === 0) return 0;
 
     const completedCount = totalDueActivities.filter((a) => a.completed).length;
     return Math.round((completedCount / totalDueActivities.length) * 100);
   };
+
   const progress = calculateProgress(activities);
+
   const fetchFriendRequests = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -242,20 +262,20 @@ function MyActivities() {
       console.error("Error fetching friend requests:", error);
     }
   };
+
   useEffect(() => {
     const interval = setInterval(() => {
       fetchFriendRequests();
-    }, 1000); // Fetch every 5 seconds
-
-    return () => clearInterval(interval); // Cleanup on unmount
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
+
   return (
     <div
       className={`min-h-screen transition-colors duration-300 ${
         darkMode ? "dark bg-gray-900" : "bg-gray-100"
       }`}
     >
-      {/* Navbar */}
       <nav className={`p-4 ${darkMode ? "bg-gray-800" : "bg-white"} shadow-lg`}>
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
@@ -307,7 +327,7 @@ function MyActivities() {
               <input
                 type="checkbox"
                 className="input"
-                onChange={() => setDarkMode(!darkMode)}
+                onChange={toggleDarkMode}
               />
               <span className="slider" />
             </label>
@@ -341,9 +361,7 @@ function MyActivities() {
         </div>
       </nav>
 
-      {/* Main Content */}
       <div className="container mx-auto p-8 relative min-h-[calc(100vh-80px)]">
-        {/* Toggle Switch */}
         <div className="flex flex-col items-center mb-8">
           <div
             className={`relative w-80 h-12 rounded-full p-1 ${
@@ -384,86 +402,190 @@ function MyActivities() {
               </button>
             </div>
           </div>
-          {!showCompleted && (
-            <p
-              className={`mt-4 text-sm ${
-                darkMode ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
-              You can see completed activities at{" "}
-              <span className="font-medium">My Activities → Completed</span>
-            </p>
-          )}
         </div>
 
-        {/* Activities List */}
-        <div className="space-y-4 mb-40">
-          {filteredActivities.map((activity) => (
-            <div
-              key={activity.id}
-              className={`flex items-center justify-between p-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] ${
-                darkMode ? "bg-gray-800" : "bg-white"
-              }`}
-            >
-              <div className="flex-1">
-                <h3
-                  className={`text-xl font-semibold ${
+        <div className="space-y-8 mb-40">
+          {!showCompleted && (
+            <>
+              <div>
+                <h2
+                  className={`text-2xl font-bold mb-4 ${
                     darkMode ? "text-white" : "text-gray-800"
                   }`}
                 >
-                  {activity.name}
-                </h3>
-                <div className="flex gap-2 mt-2">
-                  {activity.frequency.map((day) => {
-                    const isToday = day === getCurrentDayName();
-                    const isCompleted = activity.completed && isToday;
-                    return (
-                      <span
-                        key={day}
-                        className={`px-2 py-1 rounded-full text-sm ${
-                          isCompleted
-                            ? "bg-green-500 text-white"
-                            : isToday
-                            ? "bg-blue-500 text-white"
-                            : darkMode
-                            ? "bg-gray-700 text-gray-300"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
-                      >
-                        {day}
-                      </span>
-                    );
-                  })}
+                  Today's Activities
+                </h2>
+                <div className="space-y-4">
+                  {todayActivities.map((activity) => (
+                    <div
+                      key={activity._id}
+                      className={`flex items-center justify-between p-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] ${
+                        darkMode ? "bg-gray-800" : "bg-white"
+                      }`}
+                    >
+                      <div className="flex-1">
+                        <h3
+                          className={`text-xl font-semibold ${
+                            darkMode ? "text-white" : "text-gray-800"
+                          }`}
+                        >
+                          {activity.name}
+                        </h3>
+                        <div className="flex gap-2 mt-2">
+                          {activity.frequency.map((day) => {
+                            const status = getDayStatus(day, activity);
+                            return (
+                              <span
+                                key={day}
+                                className={`px-2 py-1 rounded-full text-sm ${
+                                  status === "completed"
+                                    ? "bg-green-500 text-white"
+                                    : status === "missed"
+                                    ? "bg-red-500 text-white"
+                                    : status === "today"
+                                    ? "bg-blue-500 text-white"
+                                    : darkMode
+                                    ? "bg-gray-700 text-gray-300"
+                                    : "bg-gray-100 text-gray-600"
+                                }`}
+                              >
+                                {day}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={activity.completed}
+                          onChange={() => handleActivityComplete(activity._id)}
+                          className="sr-only peer"
+                        />
+                        <div
+                          className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${
+                            activity.completed
+                              ? "bg-green-500 border-green-500"
+                              : darkMode
+                              ? "border-gray-600"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          {activity.completed && (
+                            <Check className="w-5 h-5 text-white" />
+                          )}
+                        </div>
+                      </label>
+                    </div>
+                  ))}
                 </div>
               </div>
-              {isActivityDue(activity) && !activity.completed && (
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={activity.completed}
-                    onChange={() => handleActivityComplete(activity._id)}
-                    className="sr-only peer"
-                  />
+
+              <div>
+                <h2
+                  className={`text-2xl font-bold mb-4 ${
+                    darkMode ? "text-white" : "text-gray-800"
+                  }`}
+                >
+                  Other Activities
+                </h2>
+                <div className="space-y-4">
+                  {otherActivities.map((activity) => (
+                    <div
+                      key={activity._id}
+                      className={`flex items-center justify-between p-6 rounded-xl shadow-lg ${
+                        darkMode ? "bg-gray-800" : "bg-white"
+                      }`}
+                    >
+                      <div className="flex-1">
+                        <h3
+                          className={`text-xl font-semibold ${
+                            darkMode ? "text-white" : "text-gray-800"
+                          }`}
+                        >
+                          {activity.name}
+                        </h3>
+                        <div className="flex gap-2 mt-2">
+                          {activity.frequency.map((day) => {
+                            const status = getDayStatus(day, activity);
+                            return (
+                              <span
+                                key={day}
+                                className={`px-2 py-1 rounded-full text-sm ${
+                                  status === "completed"
+                                    ? "bg-green-500 text-white"
+                                    : status === "missed"
+                                    ? "bg-red-500 text-white"
+                                    : status === "today"
+                                    ? "bg-blue-500 text-white"
+                                    : darkMode
+                                    ? "bg-gray-700 text-gray-300"
+                                    : "bg-gray-100 text-gray-600"
+                                }`}
+                              >
+                                {day}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {showCompleted && (
+            <div className="space-y-4">
+              {activities
+                .filter((activity) => activity.completed)
+                .map((activity) => (
                   <div
-                    className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${
-                      activity.completed
-                        ? "bg-green-500 border-green-500"
-                        : darkMode
-                        ? "border-gray-600"
-                        : "border-gray-300"
+                    key={activity._id}
+                    className={`flex items-center justify-between p-6 rounded-xl shadow-lg ${
+                      darkMode ? "bg-gray-800" : "bg-white"
                     }`}
                   >
-                    {activity.completed && (
-                      <Check className="w-5 h-5 text-white" />
-                    )}
+                    <div className="flex-1">
+                      <h3
+                        className={`text-xl font-semibold ${
+                          darkMode ? "text-white" : "text-gray-800"
+                        }`}
+                      >
+                        {activity.name}
+                      </h3>
+                      <div className="flex gap-2 mt-2">
+                        {activity.frequency.map((day) => {
+                          const status = getDayStatus(day, activity);
+                          return (
+                            <span
+                              key={day}
+                              className={`px-2 py-1 rounded-full text-sm ${
+                                status === "completed"
+                                  ? "bg-green-500 text-white"
+                                  : status === "missed"
+                                  ? "bg-red-500 text-white"
+                                  : status === "today"
+                                  ? "bg-blue-500 text-white"
+                                  : darkMode
+                                  ? "bg-gray-700 text-gray-300"
+                                  : "bg-gray-100 text-gray-600"
+                              }`}
+                            >
+                              {day}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <Check className="w-6 h-6 text-green-500" />
                   </div>
-                </label>
-              )}
+                ))}
             </div>
-          ))}
+          )}
         </div>
 
-        {/* Progress Tracker */}
         <div className="fixed bottom-8 right-8">
           <div
             className={`w-48 h-48 ${

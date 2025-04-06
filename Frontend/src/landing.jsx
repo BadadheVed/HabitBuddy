@@ -48,7 +48,7 @@ const Landing = () => {
     {
       title: "Buddy System",
       description:
-        "Connect with friends by searching via email or username. Share progress and motivate each other on your journey.",
+        "Connect with friends by searching via UID or username. Share progress and motivate each other on your journey.",
       icon: <Users className="w-6 h-6" />,
       image:
         "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
@@ -70,9 +70,9 @@ const Landing = () => {
         "https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
     },
     {
-      title: "Motivational Messages",
+      title: "Challenge Your Friends",
       description:
-        "Send and receive encouraging messages with your buddies. Celebrate achievements together.",
+        "Give And Receive Challenges with your buddies. Celebrate achievements together.",
       icon: <MessageCircle className="w-6 h-6" />,
       image:
         "https://images.unsplash.com/photo-1543269865-cbf427effbad?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
@@ -151,7 +151,7 @@ const Landing = () => {
               Transform your daily routines with HabitBuddy. Track habits,
               connect with friends, and achieve your goals together.
             </p>
-            <div className="flex justify-center gap-4">
+            {/* <div className="flex justify-center gap-4">
               <button
                 className={`px-6 py-3 rounded-lg ${
                   isDarkMode
@@ -161,7 +161,7 @@ const Landing = () => {
               >
                 Start Your Journey <ArrowRight className="ml-2 w-5 h-5" />
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
@@ -256,7 +256,8 @@ const Landing = () => {
             <span className="ml-2 text-lg font-bold">HabitBuddy</span>
           </div>
           <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-            © 2024 HabitBuddy. All rights reserved.
+            HabitBuddy. Have A Complaint / Suggestions{" "}
+            <a href=""> Click here</a>
           </p>
         </div>
       </footer>

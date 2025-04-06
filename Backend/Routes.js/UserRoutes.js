@@ -48,26 +48,56 @@ router.post('/Login', async (req, res) => {
     try {
         let { email, password } = req.body;
         const user = await User.findOne({ email: email })
-        if (!user) return res.status(501).json({ error: "User Doesn't Exist" })
-        if (!user) return res.status(401).send("User Not Found")
+        if (!user) {
+            return res.status(404).json({ message: "User doesn't exist" });
+        }
+
         const isMatch = await user.comparePass(password);
-        if (!isMatch) return res.status(401).send("Bad Credentials, Try Again!");
+        if (!isMatch) {
+            return res.status(401).json({ message: "Incorrect password" });
+        }
         const payload = {
             id: user.id,
             name: user.name
         }
         const token = generateToken(payload);
 
-        res.status(201).json({
+        return res.status(201).json({
             email: email,       // lowercase key for consistency
             token: token,
             message: "Logged In Successfully"
         });
     } catch (error) {
-        res.status(500).json({ message: error.message })
+        return res.status(500).json({ message: error.message || "Internal Server Error" });
     }
 
 })
+router.post('/resetPassword', async (req, res) => {
+    try {
+        const { email, newPassword } = req.body;
+
+        // Find user by email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Check if new password is same as old password
+        const isSamePassword = await user.comparePass(newPassword);
+        if (isSamePassword) {
+            return res.status(400).json({ message: "New password cannot be the same as the old password" });
+        }
+
+        // Update password
+        user.password = newPassword;
+        await user.save();
+
+        res.status(200).json({ message: "Password updated successfully" });
+    } catch (error) {
+        console.error("Error resetting password:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
 
 router.get('/Dashboard', jwtAuth, async (req, res) => {
     try {

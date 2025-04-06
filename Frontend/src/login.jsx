@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   Eye,
   EyeOff,
@@ -8,12 +10,13 @@ import {
   AlertCircle,
   Check,
   Loader2,
-  Chrome,
   Sun,
   Moon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import jwtDecode from "jwt-decode";
+import axios from "axios";
+import { Link } from "react-router-dom";
 
 const Login = () => {
   const [activeForm, setActiveForm] = useState("login");
@@ -61,33 +64,15 @@ const Login = () => {
         }
 
         endpoint = "http://localhost:3000/User/Signup";
-        body = {
-          name,
-          email,
-          password,
-          confirmPassword,
-        };
+        body = { name, email, password, confirmPassword };
       } else if (type === "login") {
         endpoint = "http://localhost:3000/User/Login";
-        body = {
-          email,
-          password,
-        };
+        body = { email, password };
       }
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
+      const response = await axios.post(endpoint, body);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Request failed");
-      }
+      const data = response.data;
 
       if (type === "signup") {
         setSuccessMessage("Signup successful! Please login.");
@@ -99,7 +84,11 @@ const Login = () => {
         navigate(`/dashboard/${decoded.name}`);
       }
     } catch (err) {
-      setError(err.message);
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("An unexpected error occurred.");
+      }
     } finally {
       setLoading("");
     }
@@ -121,6 +110,9 @@ const Login = () => {
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
+  };
+  const routetointro = () => {
+    navigate("/");
   };
 
   return (
@@ -280,8 +272,8 @@ const Login = () => {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <a
-                    href="#"
+                  <Link
+                    to="/forgot-password"
                     className={`text-sm ${
                       isDarkMode
                         ? "text-indigo-400 hover:text-indigo-300"
@@ -289,7 +281,7 @@ const Login = () => {
                     }`}
                   >
                     Forgot password?
-                  </a>
+                  </Link>
                 </div>
 
                 <button
@@ -339,16 +331,14 @@ const Login = () => {
                           ? "bg-gray-800 text-gray-400"
                           : "bg-white text-gray-500"
                       }`}
-                    >
-                      Or continue with
-                    </span>
+                    ></span>
                   </div>
                 </div>
 
                 <div className="w-full">
                   <button
                     type="button"
-                    onClick={(e) => handleSubmit(e, "google")}
+                    onClick={routetointro}
                     disabled={loading !== ""}
                     className={`w-full flex items-center justify-center px-4 py-2 rounded-lg transition-colors duration-300 ${
                       isDarkMode
@@ -358,14 +348,7 @@ const Login = () => {
                       isDarkMode ? "border-gray-600" : "border-gray-300"
                     } shadow-sm text-sm font-medium`}
                   >
-                    {loading === "google" ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        <Chrome className="w-5 h-5 text-red-500 mr-2" />
-                        Continue with Google
-                      </>
-                    )}
+                    Go To Introduction Page
                   </button>
                 </div>
               </form>
