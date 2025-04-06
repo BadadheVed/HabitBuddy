@@ -22,6 +22,13 @@ function Notifications() {
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("darkMode") === "true"
   );
+
+  useEffect(() => {
+    const currmode = localStorage.getItem("darkmode");
+    if (currmode !== null) {
+      setDarkMode(JSON.parse(currmode));
+    }
+  }, []);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userName, setUserName] = useState("");
   const [friendRequests, setFriendRequests] = useState([]);

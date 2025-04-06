@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function AddActivity() {
-  const [darkMode, setDarkMode] = useState(false);
+  //  const [darkMode, setDarkMode] = useState(false);
   const [step, setStep] = useState(1);
   const [activityName, setActivityName] = useState("");
   const [selectedDays, setSelectedDays] = useState([]);
@@ -26,14 +26,29 @@ function AddActivity() {
   const [errorMessage, setErrorMessage] = useState("");
   const [hasNotification, setHasNotification] = useState(false);
 
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedDarkMode = localStorage.getItem("darkmode");
+    return savedDarkMode ? JSON.parse(savedDarkMode) : false;
+  });
+
+  const toggleDarkMode = () => {
+    setDarkMode((prevMode) => {
+      const newMode = !prevMode;
+      localStorage.setItem("darkmode", JSON.stringify(newMode));
+      return newMode;
+    });
+  };
+
+  useEffect(() => {
+    const currmode = localStorage.getItem("darkmode");
+    if (currmode !== null) {
+      setDarkMode(JSON.parse(currmode));
+    }
+  }, []);
+
   const navigate = useNavigate();
 
   const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle("dark");
-  };
 
   const handleDayClick = (day) => {
     setSelectedDays((prev) =>
@@ -110,7 +125,6 @@ function AddActivity() {
       frequency: selectedDays, // Use selectedDays as the frequency
       wantReminders: currentActivity.reminder,
     };
-    console.log("Submitting activity data:", activityData);
 
     try {
       const response = await axios.post(
@@ -210,7 +224,7 @@ function AddActivity() {
               <input
                 type="checkbox"
                 className="input"
-                onChange={() => toggleDarkMode(!darkMode)}
+                onChange={toggleDarkMode}
               />
               <span className="slider" />
             </label>

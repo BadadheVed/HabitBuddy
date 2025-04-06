@@ -14,19 +14,27 @@ import {
 } from "lucide-react";
 
 const Landing = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedDarkMode = localStorage.getItem("darkmode");
+    return savedDarkMode ? JSON.parse(savedDarkMode) : false;
+  });
 
-  // Optionally set dark mode on mount based on system preferences
+  const toggleDarkMode = () => {
+    setIsDarkMode((prevMode) => {
+      const newMode = !prevMode;
+      localStorage.setItem("darkmode", JSON.stringify(newMode));
+      return newMode;
+    });
+  };
+
   useEffect(() => {
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setIsDarkMode(true);
+    const currmode = localStorage.getItem("darkmode");
+    if (currmode !== null) {
+      setIsDarkMode(JSON.parse(currmode));
     }
   }, []);
 
   // Define toggleDarkMode function
-  const toggleDarkMode = () => {
-    setIsDarkMode((prevMode) => !prevMode);
-  };
 
   const features = [
     {
@@ -35,47 +43,23 @@ const Landing = () => {
         "Create, update, and delete habits with ease. Whether it's exercising daily or reading 20 pages, HabitBuddy helps you stay on track.",
       icon: <CheckCircle className="w-6 h-6" />,
       image:
-        "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+        "https://plus.unsplash.com/premium_photo-1712761999986-0686ec32ad91?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       title: "Progress Visualization",
       description:
-        "Watch your progress come to life with intuitive charts and streak tracking. Visualize your journey and stay motivated.",
+        "Watch your progress come to life with intuitive Heatmap and streak tracking. Visualize your journey and stay motivated.",
       icon: <TrendingUp className="w-6 h-6" />,
       image:
-        "https://images.unsplash.com/photo-1554284126-aa88f22d8b74?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+        "https://plus.unsplash.com/premium_photo-1682309580199-12b830e35008?q=80&w=2112&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       title: "Buddy System",
       description:
-        "Connect with friends by searching via UID or username. Share progress and motivate each other on your journey.",
+        "Connect with friends by searching via UID or username. Share Challenges & More and motivate each other on your journey.",
       icon: <Users className="w-6 h-6" />,
       image:
-        "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-    },
-    {
-      title: "Smart Reminders",
-      description:
-        "Never miss a habit with customizable reminders. Get notified about incomplete habits and stay on track.",
-      icon: <Bell className="w-6 h-6" />,
-      image:
-        "https://images.unsplash.com/photo-1594080090697-02a63e9f4fcd?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-    },
-    {
-      title: "Daily Progress Tracking",
-      description:
-        "Mark habits as completed and maintain your streak. Build consistency with daily tracking.",
-      icon: <Calendar className="w-6 h-6" />,
-      image:
-        "https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-    },
-    {
-      title: "Challenge Your Friends",
-      description:
-        "Give And Receive Challenges with your buddies. Celebrate achievements together.",
-      icon: <MessageCircle className="w-6 h-6" />,
-      image:
-        "https://images.unsplash.com/photo-1543269865-cbf427effbad?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+        "https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
   ];
 

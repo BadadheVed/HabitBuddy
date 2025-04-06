@@ -25,9 +25,9 @@ import toast, { Toaster } from "react-hot-toast";
 import "./index.css";
 
 function AddFriend() {
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("darkMode") === "true"
-  );
+  // const [darkMode, setDarkMode] = useState(
+  //   localStorage.getItem("darkMode") === "true"
+  // );
   const [currentTime, setCurrentTime] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -40,21 +40,50 @@ function AddFriend() {
   const [friends, setFriends] = useState([]);
   const [hasNotification, setHasNotification] = useState(false);
   const navigate = useNavigate();
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedDarkMode = localStorage.getItem("darkmode");
+    return savedDarkMode ? JSON.parse(savedDarkMode) : false;
+  });
+
+  const toggleDarkMode = () => {
+    setDarkMode((prevMode) => {
+      const newMode = !prevMode;
+      localStorage.setItem("darkmode", JSON.stringify(newMode));
+      return newMode;
+    });
+  };
+
+  useEffect(() => {
+    const currmode = localStorage.getItem("darkmode");
+    if (currmode !== null) {
+      setDarkMode(JSON.parse(currmode));
+    }
+  }, []);
+  const fetchFriendRequests = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "http://localhost:3000/User/getRequest",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setFriendRequests(response.data.friendRequests);
+    } catch (error) {
+      console.error("Error fetching friend requests:", error);
+    }
+  };
 
   // Initialize Socket.IO
   useEffect(() => {
     const socket = io("http://localhost:3000");
 
-    socket.on("friendRequest", (data) => {
-      toast.success(`New friend request from ${data.senderName}`);
+    socket.on("friendRequest", () => {
       fetchFriendRequests();
     });
 
-    socket.on("friendRemoved", (data) => {
-      toast.success(
-        `${data.friendName} has been removed from your friends list`
-      );
-      fetchFriends();
+    socket.on("challengeReceived", () => {
+      fetchChallenges();
     });
 
     return () => {
@@ -158,10 +187,6 @@ function AddFriend() {
     }
     localStorage.setItem("darkMode", darkMode.toString());
   }, [darkMode]);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
 
   const formatDate = (date) => {
     return date.toLocaleDateString("en-US", {

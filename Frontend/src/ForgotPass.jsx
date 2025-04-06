@@ -22,27 +22,30 @@ function ForgotPassword() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Check system preference on component mount
-  useEffect(() => {
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setIsDarkMode(true);
-    }
-  }, []);
 
   // Apply dark mode class to body
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [isDarkMode]);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedDarkMode = localStorage.getItem("darkmode");
+    return savedDarkMode ? JSON.parse(savedDarkMode) : false;
+  });
 
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
+    setIsDarkMode((prevMode) => {
+      const newMode = !prevMode;
+      localStorage.setItem("darkmode", JSON.stringify(newMode));
+      return newMode;
+    });
   };
+
+  useEffect(() => {
+    const currmode = localStorage.getItem("darkmode");
+    if (currmode !== null) {
+      setIsDarkMode(JSON.parse(currmode));
+    }
+  }, []);
+  s;
 
   const handleSubmit = async (e) => {
     e.preventDefault();

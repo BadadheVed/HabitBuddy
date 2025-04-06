@@ -20,7 +20,27 @@ import { Link } from "react-router-dom";
 import "./index.css";
 
 function MyActivities() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedDarkMode = localStorage.getItem("darkmode");
+    return savedDarkMode ? JSON.parse(savedDarkMode) : false;
+  });
+
+  const toggleDarkMode = () => {
+    setIsDarkMode((prevMode) => {
+      const newMode = !prevMode;
+
+      localStorage.setItem("darkmode", JSON.stringify(newMode));
+      return newMode;
+    });
+  };
+
+  useEffect(() => {
+    const currMode = localStorage.getItem("darkmode");
+    if (currMode !== null) {
+      setIsDarkMode(JSON.parse(currMode));
+    }
+  }, []);
+
   const [showCompleted, setShowCompleted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [timeFilter, setTimeFilter] = useState("today");
@@ -98,11 +118,6 @@ function MyActivities() {
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle("dark");
-  };
 
   const getCurrentDayName = () => {
     return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
@@ -281,10 +296,12 @@ function MyActivities() {
   return (
     <div
       className={`min-h-screen transition-colors duration-300 ${
-        darkMode ? "dark bg-gray-900" : "bg-gray-100"
+        isDarkMode ? "dark bg-gray-900" : "bg-gray-100"
       }`}
     >
-      <nav className={`p-4 ${darkMode ? "bg-gray-800" : "bg-white"} shadow-lg`}>
+      <nav
+        className={`p-4 ${isDarkMode ? "bg-gray-800" : "bg-white"} shadow-lg`}
+      >
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
             <Link
@@ -293,13 +310,13 @@ function MyActivities() {
             >
               <Target
                 className={`w-8 h-8 ${
-                  darkMode ? "text-indigo-400" : "text-indigo-600"
+                  isDarkMode ? "text-indigo-400" : "text-indigo-600"
                 }`}
               />
             </Link>
             <h1
               className={`text-xl font-bold ${
-                darkMode ? "text-white" : "text-gray-800"
+                isDarkMode ? "text-white" : "text-gray-800"
               }`}
             >
               My Activities
@@ -308,7 +325,7 @@ function MyActivities() {
           <div className="flex items-center gap-4">
             <div
               className={`flex items-center gap-2 ${
-                darkMode ? "text-white" : "text-gray-800"
+                isDarkMode ? "text-white" : "text-gray-800"
               }`}
             >
               <Calendar className="w-5 h-5" />
@@ -345,11 +362,11 @@ function MyActivities() {
                 <div className="relative">
                   <button
                     className={`p-2 rounded-full ${
-                      darkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
+                      isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
                     }`}
                   >
                     <Bell
-                      className={darkMode ? "text-white" : "text-gray-800"}
+                      className={isDarkMode ? "text-white" : "text-gray-800"}
                     />
                   </button>
                   {hasNotification && (
@@ -359,7 +376,7 @@ function MyActivities() {
               </Link>
               <span
                 className={`font-medium ${
-                  darkMode ? "text-white" : "text-gray-800"
+                  isDarkMode ? "text-white" : "text-gray-800"
                 }`}
               >
                 Hi! {name}
@@ -373,13 +390,13 @@ function MyActivities() {
         <div className="flex flex-col items-center mb-8">
           <div
             className={`relative w-80 h-12 rounded-full p-1 ${
-              darkMode ? "bg-gray-700" : "bg-gray-200"
+              isDarkMode ? "bg-gray-700" : "bg-gray-200"
             }`}
           >
             <div
               className={`absolute inset-y-1 w-[9.5rem] rounded-full transition-all duration-300 transform ${
                 showCompleted ? "translate-x-[9.75rem]" : "translate-x-0"
-              } ${darkMode ? "bg-gray-800" : "bg-white"} shadow-lg`}
+              } ${isDarkMode ? "bg-gray-800" : "bg-white"} shadow-lg`}
             />
             <div className="relative flex h-full">
               <button
@@ -387,7 +404,7 @@ function MyActivities() {
                 className={`flex-1 flex items-center justify-center gap-2 ${
                   !showCompleted
                     ? "text-blue-500 font-medium"
-                    : darkMode
+                    : isDarkMode
                     ? "text-gray-400"
                     : "text-gray-600"
                 } transition-colors duration-300 z-10`}
@@ -400,7 +417,7 @@ function MyActivities() {
                 className={`flex-1 flex items-center justify-center gap-2 ${
                   showCompleted
                     ? "text-green-500 font-medium"
-                    : darkMode
+                    : isDarkMode
                     ? "text-gray-400"
                     : "text-gray-600"
                 } transition-colors duration-300 z-10`}
@@ -418,7 +435,7 @@ function MyActivities() {
               <div>
                 <h2
                   className={`text-2xl font-bold mb-4 ${
-                    darkMode ? "text-white" : "text-gray-800"
+                    isDarkMode ? "text-white" : "text-gray-800"
                   }`}
                 >
                   Today's Activities
@@ -428,13 +445,13 @@ function MyActivities() {
                     <div
                       key={activity._id}
                       className={`flex items-center justify-between p-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] ${
-                        darkMode ? "bg-gray-800" : "bg-white"
+                        isDarkMode ? "bg-gray-800" : "bg-white"
                       }`}
                     >
                       <div className="flex-1">
                         <h3
                           className={`text-xl font-semibold ${
-                            darkMode ? "text-white" : "text-gray-800"
+                            isDarkMode ? "text-white" : "text-gray-800"
                           }`}
                         >
                           {activity.name}
@@ -452,7 +469,7 @@ function MyActivities() {
                                     ? "bg-red-500 text-white"
                                     : status === "today"
                                     ? "bg-blue-500 text-white"
-                                    : darkMode
+                                    : isDarkMode
                                     ? "bg-gray-700 text-gray-300"
                                     : "bg-gray-100 text-gray-600"
                                 }`}
@@ -474,7 +491,7 @@ function MyActivities() {
                           className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center transition-all duration-200 ${
                             activity.completed
                               ? "bg-green-500 border-green-500"
-                              : darkMode
+                              : isDarkMode
                               ? "border-gray-600"
                               : "border-gray-300"
                           }`}
@@ -492,7 +509,7 @@ function MyActivities() {
               <div>
                 <h2
                   className={`text-2xl font-bold mb-4 ${
-                    darkMode ? "text-white" : "text-gray-800"
+                    isDarkMode ? "text-white" : "text-gray-800"
                   }`}
                 >
                   Other Activities
@@ -502,13 +519,13 @@ function MyActivities() {
                     <div
                       key={activity._id}
                       className={`flex items-center justify-between p-6 rounded-xl shadow-lg ${
-                        darkMode ? "bg-gray-800" : "bg-white"
+                        isDarkMode ? "bg-gray-800" : "bg-white"
                       }`}
                     >
                       <div className="flex-1">
                         <h3
                           className={`text-xl font-semibold ${
-                            darkMode ? "text-white" : "text-gray-800"
+                            isDarkMode ? "text-white" : "text-gray-800"
                           }`}
                         >
                           {activity.name}
@@ -526,7 +543,7 @@ function MyActivities() {
                                     ? "bg-red-500 text-white"
                                     : status === "today"
                                     ? "bg-blue-500 text-white"
-                                    : darkMode
+                                    : isDarkMode
                                     ? "bg-gray-700 text-gray-300"
                                     : "bg-gray-100 text-gray-600"
                                 }`}
@@ -552,13 +569,13 @@ function MyActivities() {
                   <div
                     key={activity._id}
                     className={`flex items-center justify-between p-6 rounded-xl shadow-lg ${
-                      darkMode ? "bg-gray-800" : "bg-white"
+                      isDarkMode ? "bg-gray-800" : "bg-white"
                     }`}
                   >
                     <div className="flex-1">
                       <h3
                         className={`text-xl font-semibold ${
-                          darkMode ? "text-white" : "text-gray-800"
+                          isDarkMode ? "text-white" : "text-gray-800"
                         }`}
                       >
                         {activity.name}
@@ -576,7 +593,7 @@ function MyActivities() {
                                   ? "bg-red-500 text-white"
                                   : status === "today"
                                   ? "bg-blue-500 text-white"
-                                  : darkMode
+                                  : isDarkMode
                                   ? "bg-gray-700 text-gray-300"
                                   : "bg-gray-100 text-gray-600"
                               }`}
@@ -597,7 +614,7 @@ function MyActivities() {
         <div className="fixed bottom-8 right-8">
           <div
             className={`w-48 h-48 ${
-              darkMode ? "bg-gray-800" : "bg-white"
+              isDarkMode ? "bg-gray-800" : "bg-white"
             } rounded-lg shadow-lg p-4 flex flex-col items-center justify-center relative time-filter-dropdown`}
           >
             <div className="relative w-32 h-32">
@@ -610,7 +627,7 @@ function MyActivities() {
                           a 15.9155 15.9155 0 0 1 0 31.831
                           a 15.9155 15.9155 0 0 1 0 -31.831"
                   fill="none"
-                  stroke={darkMode ? "#374151" : "#E5E7EB"}
+                  stroke={isDarkMode ? "#374151" : "#E5E7EB"}
                   strokeWidth="3"
                 />
                 <path
@@ -626,7 +643,7 @@ function MyActivities() {
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span
                   className={`text-3xl font-bold ${
-                    darkMode ? "text-white" : "text-gray-800"
+                    isDarkMode ? "text-white" : "text-gray-800"
                   }`}
                 >
                   {progress}%
@@ -636,7 +653,7 @@ function MyActivities() {
                     setShowTimeFilterDropdown(!showTimeFilterDropdown)
                   }
                   className={`mt-2 flex items-center gap-1 text-sm font-medium ${
-                    darkMode
+                    isDarkMode
                       ? "text-gray-300 hover:text-white"
                       : "text-gray-600 hover:text-gray-800"
                   }`}
@@ -649,7 +666,7 @@ function MyActivities() {
             {showTimeFilterDropdown && (
               <div
                 className={`absolute bottom-full mb-2 right-0 w-36 ${
-                  darkMode ? "bg-gray-700" : "bg-white"
+                  isDarkMode ? "bg-gray-700" : "bg-white"
                 } rounded-lg shadow-lg py-2 z-50`}
               >
                 <button
@@ -660,7 +677,7 @@ function MyActivities() {
                   className={`w-full px-4 py-2 text-left hover:bg-gray-100 ${
                     timeFilter === "today"
                       ? "text-blue-500 font-medium"
-                      : darkMode
+                      : isDarkMode
                       ? "text-white hover:bg-gray-600"
                       : "text-gray-800"
                   }`}
@@ -675,7 +692,7 @@ function MyActivities() {
                   className={`w-full px-4 py-2 text-left hover:bg-gray-100 ${
                     timeFilter === "this-week"
                       ? "text-blue-500 font-medium"
-                      : darkMode
+                      : isDarkMode
                       ? "text-white hover:bg-gray-600"
                       : "text-gray-800"
                   }`}

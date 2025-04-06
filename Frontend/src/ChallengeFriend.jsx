@@ -25,9 +25,6 @@ import toast, { Toaster } from "react-hot-toast";
 import "./index.css";
 
 function ChallengeActivity() {
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("darkMode") === "true"
-  );
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userName, setUserName] = useState("");
   const [showChallenges, setShowChallenges] = useState(false);
@@ -45,6 +42,26 @@ function ChallengeActivity() {
   });
   const [hasNotification, setHasNotification] = useState(false);
   const navigate = useNavigate();
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedDarkMode = localStorage.getItem("darkmode");
+    return savedDarkMode ? JSON.parse(savedDarkMode) : false;
+  });
+
+  const toggleDarkMode = () => {
+    setDarkMode((prevMode) => {
+      const newMode = !prevMode;
+
+      localStorage.setItem("darkmode", JSON.stringify(newMode));
+      return newMode;
+    });
+  };
+
+  useEffect(() => {
+    const currMode = localStorage.getItem("darkmode");
+    if (currMode !== null) {
+      setDarkMode(JSON.parse(currMode));
+    }
+  }, []);
 
   // Initialize Socket.IO
   useEffect(() => {
@@ -151,10 +168,6 @@ function ChallengeActivity() {
       fetchChallenges();
     }
   }, [showChallenges]);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
 
   const formatDate = (date) => {
     return date.toLocaleDateString("en-US", {
@@ -757,7 +770,7 @@ function ChallengeActivity() {
               <input
                 type="checkbox"
                 className="input"
-                onChange={() => setDarkMode(!darkMode)}
+                onChange={toggleDarkMode}
               />
               <span className="slider" />
             </label>

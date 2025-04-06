@@ -14,9 +14,9 @@ import jwtDecode from "jwt-decode";
 import toast, { Toaster } from "react-hot-toast";
 
 function HeatMap() {
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("darkMode") === "true"
-  );
+  // const [darkMode, setDarkMode] = useState(
+  //   localStorage.getItem("darkMode") === "true"
+  // );
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
@@ -27,6 +27,25 @@ function HeatMap() {
   );
   const [hasNotification, setHasNotification] = useState(false);
   const navigate = useNavigate();
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedDarkMode = localStorage.getItem("darkmode");
+    return savedDarkMode ? JSON.parse(savedDarkMode) : false;
+  });
+
+  const toggleDarkMode = () => {
+    setDarkMode((prevMode) => {
+      const newMode = !prevMode;
+      localStorage.setItem("darkmode", JSON.stringify(newMode));
+      return newMode;
+    });
+  };
+
+  useEffect(() => {
+    const currmode = localStorage.getItem("darkmode");
+    if (currmode !== null) {
+      setDarkMode(JSON.parse(currmode));
+    }
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -73,7 +92,7 @@ function HeatMap() {
   };
 
   const getColorForCount = (count) => {
-    if (count === 0) return darkMode ? "bg-gray-800" : "bg-gray-100";
+    if (count === 0) return darkMode ? "bg-gray-300" : "bg-gray-100";
     if (count === 1) return "bg-[#1F7D53]"; // Light green
     if (count >= 2 && count <= 3) return "bg-[#85A947]"; // Medium green
     return "bg-[#C2FFC7]"; // Bright green
@@ -288,7 +307,7 @@ function HeatMap() {
           <div className="flex items-center gap-2">
             <div
               className={`w-3 h-3 rounded-sm ${
-                darkMode ? "bg-gray-800" : "bg-gray-100"
+                darkMode ? "bg-gray-300" : "bg-gray-100"
               }`}
             />
             <span

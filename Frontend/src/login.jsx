@@ -24,7 +24,7 @@ const Login = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState("");
   const [password, setPassword] = useState("");
-  const [isDarkMode, setIsDarkMode] = useState(false);
+
   const [isFormVisible, setIsFormVisible] = useState(true);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -33,9 +33,23 @@ const Login = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
 
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedDarkMode = localStorage.getItem("darkmode");
+    return savedDarkMode ? JSON.parse(savedDarkMode) : false;
+  });
+
+  const toggleDarkMode = () => {
+    setIsDarkMode((prevMode) => {
+      const newMode = !prevMode;
+      localStorage.setItem("darkmode", JSON.stringify(newMode));
+      return newMode;
+    });
+  };
+
   useEffect(() => {
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setIsDarkMode(true);
+    const currmode = localStorage.getItem("darkmode");
+    if (currmode !== null) {
+      setIsDarkMode(JSON.parse(currmode));
     }
   }, []);
 
@@ -108,9 +122,6 @@ const Login = () => {
     }, 300);
   };
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-  };
   const routetointro = () => {
     navigate("/");
   };
