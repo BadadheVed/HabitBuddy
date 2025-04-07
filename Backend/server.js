@@ -4,13 +4,13 @@ const { Server } = require('socket.io');
 require('dotenv').config();
 
 const UserRoute = require('./Routes.js/UserRoutes');
-
+const furl = process.env.frurl;
 const cors = require('cors');
 const app = express();
 const server = http.createServer(app); // Create HTTP server
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:5173', // Allow frontend connection
+        origin: furl, // Allow frontend connection
         methods: ['GET', 'POST'],
         credentials: true,
     }

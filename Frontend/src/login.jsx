@@ -122,7 +122,7 @@ const Login = () => {
           handleFormSwitch("signup");
         }, 1500);
       } else {
-        setError("An unexpected error occurred.");
+        setError("Check Your Credentials And Try Again");
       }
     } finally {
       setLoading("");
