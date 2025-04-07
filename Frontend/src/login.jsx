@@ -99,8 +99,18 @@ const Login = () => {
         navigate(`/dashboard/${decoded.name}`);
       }
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.message) {
+      if (
+        err.response &&
+        err.response.data &&
+        err.response.data.message &&
+        err.response.data.message === "User already exists ! Please Login"
+      ) {
         setError(err.response.data.message);
+
+        setError("Redirecting To Login Page...");
+        setTimeout(() => {
+          handleFormSwitch("login");
+        }, 2000);
       } else {
         setError("An unexpected error occurred.");
       }

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt')
 require('dotenv').config()
-const mongoURL = process.end.MONGO_URL || 'mongodb://127.0.0.1:27017/HabitBuddy'
+const mongoURL = process.env.MONGO_URL
 mongoose.connect(mongoURL).then(() => {
     console.log("Connection Established");
 }).catch(err => console.log("Error is", err.message))
