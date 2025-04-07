@@ -19,7 +19,7 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.use(cors({ origin: `${furl}`, credentials: true }));
 app.use(express.json());
 app.set('io', io);
 
