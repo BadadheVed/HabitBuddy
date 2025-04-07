@@ -21,7 +21,7 @@ import { useNavigate, Link } from "react-router-dom";
 import jwtDecode from "jwt-decode";
 import { io } from "socket.io-client";
 import toast, { Toaster } from "react-hot-toast";
-
+const surl = import.meta.env.VITE_SURL;
 import "./index.css";
 
 function ChallengeActivity() {
@@ -67,10 +67,7 @@ function ChallengeActivity() {
 
   // Initialize Socket.IO
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_SURL, {
-      transports: ["websocket"],
-      withCredentials: true,
-    });
+    const socket = io({ surl });
     socket.on("connect", () => {
       console.log("Socket connected!");
     });
