@@ -110,7 +110,17 @@ const Login = () => {
         setError("Redirecting To Login Page...");
         setTimeout(() => {
           handleFormSwitch("login");
-        }, 2000);
+        }, 1500);
+      } else if (
+        err.response &&
+        err.response.data &&
+        err.response.data.message &&
+        err.response.data.message === "User doesn't exist"
+      ) {
+        setError("User doesn't exist. Please sign up.");
+        setTimeout(() => {
+          handleFormSwitch("signup");
+        }, 1500);
       } else {
         setError("An unexpected error occurred.");
       }
