@@ -68,7 +68,7 @@ function ChallengeActivity() {
   // Initialize Socket.IO
   useEffect(() => {
     const socket = io(import.meta.env.VITE_SURL, {
-      transports: ["websocket"], // Disable polling completely
+      transports: ["websocket"],
       withCredentials: true,
     });
     socket.on("connect", () => {
