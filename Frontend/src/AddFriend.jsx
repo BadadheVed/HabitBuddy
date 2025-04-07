@@ -40,6 +40,8 @@ function AddFriend() {
   const [friends, setFriends] = useState([]);
   const [hasNotification, setHasNotification] = useState(false);
   const navigate = useNavigate();
+  const surl = import.meta.env.VITE_SURL;
+  const burl = import.meta.env.VITE_BURL;
   const [darkMode, setDarkMode] = useState(() => {
     const savedDarkMode = localStorage.getItem("darkmode");
     return savedDarkMode ? JSON.parse(savedDarkMode) : false;
@@ -62,12 +64,9 @@ function AddFriend() {
   const fetchFriendRequests = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:3000/User/getRequest",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`${burl}/User/getRequest`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setFriendRequests(response.data.friendRequests);
     } catch (error) {
       console.error("Error fetching friend requests:", error);
@@ -76,7 +75,7 @@ function AddFriend() {
 
   // Initialize Socket.IO
   useEffect(() => {
-    const socket = io("http://localhost:3000");
+    const socket = io(surl);
 
     socket.on("friendRequest", () => {
       fetchFriendRequests();
@@ -94,12 +93,9 @@ function AddFriend() {
   const fetchFriends = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:3000/User/getFriends",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`${burl}/User/getFriends`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setFriends(response.data.friends);
     } catch (error) {
       console.error("Error fetching friends:", error);
@@ -112,16 +108,14 @@ function AddFriend() {
       const token = localStorage.getItem("token");
 
       // Fetch friend requests
-      const friendReqRes = await axios.get(
-        "http://localhost:3000/User/getRequest",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const friendReqRes = await axios.get(`${burl}/User/getRequest`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       // Fetch challenges
-      const challengeRes = await axios.get(
-        "http://localhost:3000/User/getChallenges",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const challengeRes = await axios.get(`${burl}/User/getChallenges`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       const hasFriendRequests =
         friendReqRes.data.friendRequests &&
@@ -211,7 +205,7 @@ function AddFriend() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:3000/User/getUsers", {
+      const response = await axios.get(`${burl}/User/getUsers`, {
         params: { query: searchQuery },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -231,7 +225,7 @@ function AddFriend() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:3000/User/AddFriend",
+        `${burl}/User/AddFriend`,
         { userId, userName },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -253,7 +247,7 @@ function AddFriend() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:3000/User/removeFriend",
+        `${burl}/User/removeFriend`,
         { friendId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -269,7 +263,7 @@ function AddFriend() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:3000/User/acceptFriendRequest",
+        `${burl}/User/acceptFriendRequest`,
         { senderId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -291,7 +285,7 @@ function AddFriend() {
 
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:3000/User/rejectFriendRequest",
+        `${burl}/User/rejectFriendRequest`,
         { senderId },
         { headers: { Authorization: `Bearer ${token}` } }
       );

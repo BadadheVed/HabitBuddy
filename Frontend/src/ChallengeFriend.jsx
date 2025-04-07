@@ -46,6 +46,8 @@ function ChallengeActivity() {
     const savedDarkMode = localStorage.getItem("darkmode");
     return savedDarkMode ? JSON.parse(savedDarkMode) : false;
   });
+  const surl = import.meta.env.VITE_SURL;
+  const burl = import.meta.env.VITE_BURL;
 
   const toggleDarkMode = () => {
     setDarkMode((prevMode) => {
@@ -65,7 +67,7 @@ function ChallengeActivity() {
 
   // Initialize Socket.IO
   useEffect(() => {
-    const socket = io("http://localhost:3000");
+    const socket = io(surl);
 
     socket.on("challengeReceived", (data) => {
       toast.success(`New challenge from ${data.senderName}!`);
@@ -116,12 +118,9 @@ function ChallengeActivity() {
   const fetchFriends = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:3000/User/getFriends",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`${burl}/User/getFriends`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setFriends(response.data.friends);
     } catch (error) {
       console.error("Error fetching friends:", error);
@@ -132,12 +131,9 @@ function ChallengeActivity() {
   const fetchActivities = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:3000/User/activities",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`${burl}/User/activities`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setActivities(response.data);
     } catch (error) {
       console.error("Error fetching activities:", error);
@@ -148,12 +144,9 @@ function ChallengeActivity() {
   const fetchChallenges = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:3000/User/getChallenges",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`${burl}/User/getChallenges`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setChallenges(response.data.challenges);
     } catch (error) {
       console.error("Error fetching challenges:", error);
@@ -188,7 +181,7 @@ function ChallengeActivity() {
   const handleCreateActivity = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:3000/User/addActivity", newActivity, {
+      await axios.post(`${burl}/User/addActivity`, newActivity, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Activity created successfully!");
@@ -210,7 +203,7 @@ function ChallengeActivity() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:3000/User/sendChallenge",
+        `${burl}/User/sendChallenge`,
         {
           activityId: selectedActivity._id,
           friendIds: selectedFriends.map((f) => f._id),
@@ -236,7 +229,7 @@ function ChallengeActivity() {
       }
 
       const response = await axios.post(
-        "http://localhost:3000/User/acceptChallenge",
+        `${burl}/User/acceptChallenge`,
         { challengeId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -253,7 +246,7 @@ function ChallengeActivity() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:3000/User/rejectChallenge",
+        `${burl}/User/rejectChallenge`,
         { challengeId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -269,16 +262,14 @@ function ChallengeActivity() {
       const token = localStorage.getItem("token");
 
       // Fetch friend requests
-      const friendReqRes = await axios.get(
-        "http://localhost:3000/User/getRequest",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const friendReqRes = await axios.get(`${burl}/User/getRequest`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       // Fetch challenges
-      const challengeRes = await axios.get(
-        "http://localhost:3000/User/getChallenges",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const challengeRes = await axios.get(`${burl}/User/getChallenges`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       const hasFriendRequests =
         friendReqRes.data.friendRequests &&

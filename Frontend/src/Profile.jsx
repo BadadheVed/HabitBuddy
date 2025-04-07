@@ -20,6 +20,7 @@ function Profile() {
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("darkMode") === "true"
   );
+  const formurl = import.meta.env.VITE_FORMURL;
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
@@ -221,7 +222,11 @@ function Profile() {
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>
-                  Complaints / Suggestions about the website? Click here
+                  Complaints / Suggestions about the website?
+                  <a href={formurl} target="_blank" rel="noopener noreferrer">
+                    {" "}
+                    Click here
+                  </a>
                 </span>
               </Link>
             </div>

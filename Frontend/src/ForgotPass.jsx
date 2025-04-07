@@ -22,6 +22,8 @@ function ForgotPassword() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const surl = import.meta.env.VITE_SURL;
+  const burl = import.meta.env.VITE_BURL;
 
   // Check system preference on component mount
 
@@ -60,13 +62,10 @@ function ForgotPassword() {
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/User/resetPassword",
-        {
-          email,
-          newPassword,
-        }
-      );
+      const response = await axios.post(`${burl}/User/resetPassword`, {
+        email,
+        newPassword,
+      });
 
       if (response.data.message) {
         setSuccess(response.data.message);

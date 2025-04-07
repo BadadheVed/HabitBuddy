@@ -39,6 +39,8 @@ function HeatMap() {
       return newMode;
     });
   };
+  const surl = import.meta.env.VITE_SURL;
+  const burl = import.meta.env.VITE_BURL;
 
   useEffect(() => {
     const currmode = localStorage.getItem("darkmode");
@@ -77,13 +79,10 @@ function HeatMap() {
   const fetchActivityData = async (userId, year) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        `http://localhost:3000/User/activityHeatmap`,
-        {
-          params: { year },
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`${burl}/User/activityHeatmap`, {
+        params: { year },
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setActivityData(response.data.activities);
     } catch (error) {
       console.error("Error fetching activity data:", error);
@@ -101,12 +100,9 @@ function HeatMap() {
   const fetchFriendRequests = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:3000/User/getRequest",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`${burl}/User/getRequest`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (
         response.data.friendRequests &&
         response.data.friendRequests.length > 0

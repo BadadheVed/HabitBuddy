@@ -33,6 +33,8 @@ const Dashboard = () => {
     const savedDarkMode = localStorage.getItem("darkmode");
     return savedDarkMode ? JSON.parse(savedDarkMode) : false;
   });
+  const surl = import.meta.env.VITE_SURL;
+  const burl = import.meta.env.VITE_BURL;
 
   const toggleDarkMode = () => {
     setDarkMode((prevMode) => {
@@ -91,16 +93,14 @@ const Dashboard = () => {
       const token = localStorage.getItem("token");
 
       // Fetch friend requests
-      const friendReqRes = await axios.get(
-        "http://localhost:3000/User/getRequest",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const friendReqRes = await axios.get(`${burl}/User/getRequest`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       // Fetch challenges
-      const challengeRes = await axios.get(
-        "http://localhost:3000/User/getChallenges",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const challengeRes = await axios.get(`${burl}/User/getChallenges`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       const hasFriendRequests =
         friendReqRes.data.friendRequests &&

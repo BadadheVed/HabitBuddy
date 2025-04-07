@@ -24,6 +24,8 @@ function MyActivities() {
     const savedDarkMode = localStorage.getItem("darkmode");
     return savedDarkMode ? JSON.parse(savedDarkMode) : false;
   });
+  const surl = import.meta.env.VITE_SURL;
+  const burl = import.meta.env.VITE_BURL;
 
   const toggleDarkMode = () => {
     setIsDarkMode((prevMode) => {
@@ -56,13 +58,10 @@ function MyActivities() {
     const fetchActivities = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(
-          "http://localhost:3000/User/activities",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            withCredentials: true,
-          }
-        );
+        const response = await axios.get(`${burl}/User/activities`, {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        });
         setActivities(response.data);
       } catch (error) {
         console.error("Error fetching activities", error);
@@ -181,7 +180,7 @@ function MyActivities() {
 
         const token = localStorage.getItem("token");
         await axios.put(
-          `http://localhost:3000/User/activities/${id}`,
+          `${burl}/User/activities/${id}`,
           {
             completed: true,
             lastCompletedDate: activityToUpdate.lastCompletedDate,
@@ -261,16 +260,14 @@ function MyActivities() {
       const token = localStorage.getItem("token");
 
       // Fetch friend requests
-      const friendReqRes = await axios.get(
-        "http://localhost:3000/User/getRequest",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const friendReqRes = await axios.get(`${burl}/User/getRequest`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       // Fetch challenges
-      const challengeRes = await axios.get(
-        "http://localhost:3000/User/getChallenges",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const challengeRes = await axios.get(`${burl}/User/getChallenges`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       const hasFriendRequests =
         friendReqRes.data.friendRequests &&

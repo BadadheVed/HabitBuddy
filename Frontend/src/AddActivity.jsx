@@ -38,7 +38,8 @@ function AddActivity() {
       return newMode;
     });
   };
-
+  const surl = import.meta.env.VITE_SURL;
+  const burl = import.meta.env.VITE_BURL;
   useEffect(() => {
     const currmode = localStorage.getItem("darkmode");
     if (currmode !== null) {
@@ -128,7 +129,7 @@ function AddActivity() {
 
     try {
       const response = await axios.post(
-        `http://localhost:3000/User/addActivity`, // Adjust this URL if needed
+        `${burl}/User/addActivity`, // Adjust this URL if needed
         activityData,
         {
           headers: {
@@ -152,12 +153,9 @@ function AddActivity() {
   const fetchFriendRequests = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:3000/User/getRequest",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`${burl}/User/getRequest`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (
         response.data.friendRequests &&
         response.data.friendRequests.length > 0

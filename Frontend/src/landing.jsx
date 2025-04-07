@@ -18,6 +18,7 @@ const Landing = () => {
     const savedDarkMode = localStorage.getItem("darkmode");
     return savedDarkMode ? JSON.parse(savedDarkMode) : false;
   });
+  const formurl = import.meta.env.VITE_FORMURL;
 
   const toggleDarkMode = () => {
     setIsDarkMode((prevMode) => {
@@ -241,7 +242,10 @@ const Landing = () => {
           </div>
           <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
             HabitBuddy. Have A Complaint / Suggestions{" "}
-            <a href=""> Click here</a>
+            <a href={formurl} target="_blank" rel="noopener noreferrer">
+              {" "}
+              Click here
+            </a>
           </p>
         </div>
       </footer>

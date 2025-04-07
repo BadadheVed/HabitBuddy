@@ -24,7 +24,8 @@ const Login = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState("");
   const [password, setPassword] = useState("");
-
+  const surl = import.meta.env.VITE_SURL;
+  const burl = import.meta.env.VITE_BURL;
   const [isFormVisible, setIsFormVisible] = useState(true);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -77,10 +78,10 @@ const Login = () => {
           throw new Error("Passwords do not match");
         }
 
-        endpoint = "http://localhost:3000/User/Signup";
+        endpoint = `${burl}/User/Signup`;
         body = { name, email, password, confirmPassword };
       } else if (type === "login") {
-        endpoint = "http://localhost:3000/User/Login";
+        endpoint = `${burl}/User/Login`;
         body = { email, password };
       }
 
