@@ -15,6 +15,7 @@ import HeatMap from "./Heatmap";
 import Notifications from "./Notifications";
 import Profile from "./Profile";
 import ForgotPassword from "./ForgotPass";
+import Error from "./ErrorRoute";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -89,6 +90,7 @@ function App() {
             </Tokens>
           }
         />
+        <Route path="*" element={<Error />} />
       </Routes>
     </Router>
   );
