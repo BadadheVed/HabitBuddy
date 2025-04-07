@@ -1,8 +1,11 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt')
-mongoose.connect('mongodb://127.0.0.1:27017/HabitBuddy').then(() => {
+require('dotenv').config()
+const mongoURL = process.end.MONGO_URL || 'mongodb://127.0.0.1:27017/HabitBuddy'
+mongoose.connect(mongoURL).then(() => {
     console.log("Connection Established");
 }).catch(err => console.log("Error is", err.message))
+
 
 const ActiSchema = new mongoose.Schema({
     name: { type: String, required: true },
