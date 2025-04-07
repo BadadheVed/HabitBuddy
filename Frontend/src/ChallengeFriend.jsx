@@ -67,7 +67,9 @@ function ChallengeActivity() {
 
   // Initialize Socket.IO
   useEffect(() => {
-    const socket = io(surl);
+    const socket = io(surl, {
+      withCredentials: true,
+    });
 
     socket.on("challengeReceived", (data) => {
       toast.success(`New challenge from ${data.senderName}!`);
