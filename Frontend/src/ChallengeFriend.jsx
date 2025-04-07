@@ -67,12 +67,9 @@ function ChallengeActivity() {
 
   // Initialize Socket.IO
   useEffect(() => {
-    const socket = io(surl, {
+    const socket = io(import.meta.env.VITE_SURL, {
+      transports: ["websocket"], // Disable polling completely
       withCredentials: true,
-      transports: ["websocket", "polling"],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      autoConnect: true,
     });
     socket.on("connect", () => {
       console.log("Socket connected!");
@@ -90,6 +87,14 @@ function ChallengeActivity() {
 
     socket.on("challengeAccepted", (data) => {
       toast.success(`${data.friendName} accepted your challenge!`);
+    });
+    socket.on("connect_error", (err) => {
+      console.error("Connection error:", {
+        message: err.message,
+        type: err.type,
+        stack: err.stack,
+      });
+      toast.error(`Realtime connection failed: ${err.message}`);
     });
 
     return () => {
