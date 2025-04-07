@@ -69,6 +69,18 @@ function ChallengeActivity() {
   useEffect(() => {
     const socket = io(surl, {
       withCredentials: true,
+      transports: ["websocket", "polling"],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      autoConnect: true,
+    });
+    socket.on("connect", () => {
+      console.log("Socket connected!");
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err.message);
+      toast.error("Realtime connection failed");
     });
 
     socket.on("challengeReceived", (data) => {
