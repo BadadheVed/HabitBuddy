@@ -94,10 +94,12 @@ function Notifications() {
         toast.error("Invalid response format from server");
       }
     } catch (error) {
-      console.error("Error fetching activity reminders:", error);
-      const errorMessage =
-        error.response?.data?.message || "Failed to fetch activity reminders";
-      toast.error(errorMessage);
+      console.error(
+        "Error fetching notifications:",
+        error.message,
+        error.stack
+      );
+      res.status(500).json({ message: "Server error", error: error.message });
     }
   };
 
