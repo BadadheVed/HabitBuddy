@@ -24,20 +24,12 @@ function Notifications() {
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("darkMode") === "true"
   );
-
-  useEffect(() => {
-    const currmode = localStorage.getItem("darkmode");
-    if (currmode !== null) {
-      setDarkMode(JSON.parse(currmode));
-    }
-  }, []);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userName, setUserName] = useState("");
   const [friendRequests, setFriendRequests] = useState([]);
   const [challenges, setChallenges] = useState([]);
-  const navigate = useNavigate();
-
   const [activityReminders, setActivityReminders] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const socket = io(surl);
@@ -68,17 +60,78 @@ function Notifications() {
     }
 
     try {
-      const decoded = jwtDecode(token);
+      const decoded = jwtDecode.jwtDecode(token);
       setUserName(decoded.name || "User");
       fetchFriendRequests();
       fetchChallenges();
-      fetchNotifications();
+      fetchActivityReminders();
     } catch (error) {
       console.error("Invalid token:", error);
       localStorage.removeItem("token");
       navigate("/login");
     }
   }, [navigate]);
+
+  const fetchActivityReminders = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response = await axios.get(`${burl}/User/getNoti`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.data && Array.isArray(response.data.notifications)) {
+        setActivityReminders(response.data.notifications);
+      } else {
+        console.error("Invalid response format:", response.data);
+        toast.error("Invalid response format from server");
+      }
+    } catch (error) {
+      console.error("Error fetching activity reminders:", error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch activity reminders";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleCompleteActivity = async (activityId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const currentDate = new Date().toISOString();
+
+      await axios.put(
+        `${burl}/User/activities/${activityId}`,
+        {
+          completed: true,
+          lastCompletedDate: currentDate,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      toast.success("Activity marked as completed!");
+      fetchActivityReminders(); // Refresh the list after completion
+    } catch (error) {
+      console.error("Error completing activity:", error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to complete activity";
+      toast.error(errorMessage);
+    }
+  };
 
   const fetchFriendRequests = async () => {
     try {
@@ -101,42 +154,6 @@ function Notifications() {
       setChallenges(response.data.challenges);
     } catch (error) {
       console.error("Error fetching challenges:", error);
-    }
-  };
-
-  const fetchNotifications = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`${burl}/User/getNoti`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setActivityReminders(response.data.notifications);
-    } catch (error) {
-      console.error("Error fetching activity reminders:", error);
-      toast.error("Failed to fetch activity reminders");
-    }
-  };
-  const handleCompleteActivity = async (activityId) => {
-    try {
-      const token = localStorage.getItem("token");
-      const currentDate = new Date().toISOString();
-
-      await axios.put(
-        `${burl}/User/activities/${activityId}`,
-        {
-          completed: true,
-          lastCompletedDate: currentDate,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      toast.success("Activity marked as completed!");
-      setActivityReminders();
-    } catch (error) {
-      console.error("Error completing activity:", error);
-      toast.error("Failed to complete activity");
     }
   };
 
