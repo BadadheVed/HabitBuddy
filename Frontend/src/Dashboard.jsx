@@ -266,7 +266,7 @@ const Dashboard = () => {
                 group
               `}
             >
-              <Link to={`/dashboard/${name}/profile`}>
+              <Link to={`/dashboard/${name}/add`}>
                 <div className="h-full flex flex-col items-center justify-center">
                   <LineChartIcon
                     className={`w-12 h-12 ${
