@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { jwtAuth, generteToken } = require('./jwt')
 router.use(express.json())
-const { User } = require('../Models/User')
+const User = require('../Models/User')
 
 const shell = require('shelljs')
 const cron = require('node-cron')
