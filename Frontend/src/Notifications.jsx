@@ -77,7 +77,8 @@ function Notifications() {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error("No authentication token found");
+        toast.error("Please log in to continue");
+        return;
       }
 
       const response = await axios.get(`${burl}/User/getNoti`, {
@@ -94,12 +95,10 @@ function Notifications() {
         toast.error("Invalid response format from server");
       }
     } catch (error) {
-      console.error(
-        "Error fetching notifications:",
-        error.message,
-        error.stack
+      console.error("Error fetching notifications:", error.message);
+      toast.error(
+        error.response?.data?.message || "Failed to fetch notifications"
       );
-      // res.status(500).json({ message: "Server error", error: error.message });
     }
   };
 
