@@ -18,7 +18,7 @@ import jwtDecode from "jwt-decode";
 import { io } from "socket.io-client";
 import toast, { Toaster } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-const surl = import.meta.env.VITE_SURL;
+const surl = import.meta.env.VITE_SURL?.replace(/"/g, "") || "";
 const burl = import.meta.env.VITE_BURL;
 function Notifications() {
   const [darkMode, setDarkMode] = useState(
@@ -32,7 +32,8 @@ function Notifications() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const socket = io(surl);
+    const cleanUrl = surl.replace(/"/g, "");
+    const socket = io(cleanUrl);
 
     socket.on("friendRequest", () => {
       fetchFriendRequests();
