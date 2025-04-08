@@ -5,14 +5,14 @@ require('dotenv').config();
 
 const UserRoute = require('./Routes.js/UserRoutes');
 const notiRoute = require('./Routes.js/NotiRoute')
-const furl = process.env.frurl;
+const furl = process.env.furl;
 const cors = require('cors');
 const app = express();
 const server = http.createServer(app); // Create HTTP server
 const io = new Server(server, {
     cors: {
         origin: furl, // Allow frontend connection
-        methods: ['GET', 'POST'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', ''],
         credentials: true,
     }
 });
