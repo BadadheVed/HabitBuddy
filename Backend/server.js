@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 require('dotenv').config();
 
 const UserRoute = require('./Routes.js/UserRoutes');
+const notiRoute = require('./Routes.js/NotiRoute')
 const furl = process.env.frurl;
 const cors = require('cors');
 const app = express();
@@ -25,6 +26,7 @@ app.set('io', io);
 
 // User routes
 app.use('/User', UserRoute);
+app.use('/User', notiRoute);
 
 // Socket.IO event handling
 io.on('connection', (socket) => {

@@ -36,8 +36,10 @@ function Notifications() {
   const [challenges, setChallenges] = useState([]);
   const navigate = useNavigate();
 
+  const [activityReminders, setActivityReminders] = useState([]);
+
   useEffect(() => {
-    const socket = io({ surl });
+    const socket = io(surl);
 
     socket.on("friendRequest", () => {
       fetchFriendRequests();
@@ -69,6 +71,7 @@ function Notifications() {
       setUserName(decoded.name || "User");
       fetchFriendRequests();
       fetchChallenges();
+      fetchNotifications();
     } catch (error) {
       console.error("Invalid token:", error);
       localStorage.removeItem("token");
@@ -97,6 +100,42 @@ function Notifications() {
       setChallenges(response.data.challenges);
     } catch (error) {
       console.error("Error fetching challenges:", error);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${burl}/User/getNoti`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setActivityReminders(response.data.notifications);
+    } catch (error) {
+      console.error("Error fetching activity reminders:", error);
+      toast.error("Failed to fetch activity reminders");
+    }
+  };
+  const handleCompleteActivity = async (activityId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const currentDate = new Date().toISOString();
+
+      await axios.put(
+        `${burl}/User/activities/${activityId}`,
+        {
+          completed: true,
+          lastCompletedDate: currentDate,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      toast.success("Activity marked as completed!");
+      fetchActivityReminders();
+    } catch (error) {
+      console.error("Error completing activity:", error);
+      toast.error("Failed to complete activity");
     }
   };
 
@@ -250,6 +289,77 @@ function Notifications() {
           </div>
         </div>
       </nav>
+
+      <div className="container mx-auto p-8">
+        <div className="max-w-2xl mx-auto space-y-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2
+              className={`text-2xl font-bold mb-4 flex items-center gap-2 ${
+                darkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              <AlertCircle className="w-6 h-6" />
+              Activity Reminders
+            </h2>
+            <AnimatePresence>
+              {activityReminders.length === 0 ? (
+                <div
+                  className={`p-6 rounded-xl ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-lg text-center`}
+                >
+                  <p className={darkMode ? "text-gray-400" : "text-gray-600"}>
+                    No pending activities
+                  </p>
+                </div>
+              ) : (
+                activityReminders.map((activity) => (
+                  <motion.div
+                    key={activity._id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className={`p-6 rounded-xl ${
+                      darkMode ? "bg-gray-800" : "bg-white"
+                    } shadow-lg mb-4`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p
+                          className={`text-lg font-medium ${
+                            darkMode ? "text-white" : "text-gray-900"
+                          }`}
+                        >
+                          {activity.name}
+                        </p>
+                        <p
+                          className={`text-sm ${
+                            darkMode ? "text-gray-400" : "text-gray-600"
+                          }`}
+                        >
+                          Created:{" "}
+                          {new Date(activity.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleCompleteActivity(activity._id)}
+                        className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center gap-2"
+                      >
+                        <Check className="w-4 h-4" />
+                        Complete
+                      </button>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </div>
+      </div>
 
       <div className="container mx-auto p-8">
         <div className="max-w-2xl mx-auto space-y-8">

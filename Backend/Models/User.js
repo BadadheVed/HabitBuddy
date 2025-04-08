@@ -30,6 +30,16 @@ const ActiSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
+    notificationSent: {
+        sent: {
+            type: Boolean,
+            default: false
+        },
+        date: {
+            type: Date,
+            default: null
+        }
+    }
 
 
 }, { timestamps: true });
