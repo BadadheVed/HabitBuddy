@@ -99,7 +99,7 @@ function Notifications() {
         error.message,
         error.stack
       );
-      res.status(500).json({ message: "Server error", error: error.message });
+      // res.status(500).json({ message: "Server error", error: error.message });
     }
   };
 
