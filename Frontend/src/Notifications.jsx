@@ -19,7 +19,7 @@ import { io } from "socket.io-client";
 import toast, { Toaster } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 const surl = import.meta.env.VITE_SURL?.replace(/"/g, "") || "";
-onst burl = import.meta.env.VITE_BURL?.replace(/"/g, '') || '';
+const burl = import.meta.env.VITE_BURL?.replace(/"/g, "") || "";
 function Notifications() {
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("darkMode") === "true"
