@@ -133,7 +133,7 @@ function Notifications() {
       );
 
       toast.success("Activity marked as completed!");
-      fetchActivityReminders();
+      setActivityReminders();
     } catch (error) {
       console.error("Error completing activity:", error);
       toast.error("Failed to complete activity");
