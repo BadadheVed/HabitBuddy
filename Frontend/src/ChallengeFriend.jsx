@@ -21,7 +21,7 @@ import { useNavigate, Link } from "react-router-dom";
 import jwtDecode from "jwt-decode";
 import { io } from "socket.io-client";
 import toast, { Toaster } from "react-hot-toast";
-const surl = import.meta.env.VITE_SURL;
+
 import "./index.css";
 
 function ChallengeActivity() {
@@ -67,15 +67,7 @@ function ChallengeActivity() {
 
   // Initialize Socket.IO
   useEffect(() => {
-    const socket = io({ surl });
-    socket.on("connect", () => {
-      console.log("Socket connected!");
-    });
-
-    socket.on("connect_error", (err) => {
-      console.error("Socket connection error:", err.message);
-      toast.error("Realtime connection failed");
-    });
+    const socket = io(surl);
 
     socket.on("challengeReceived", (data) => {
       toast.success(`New challenge from ${data.senderName}!`);
@@ -84,14 +76,6 @@ function ChallengeActivity() {
 
     socket.on("challengeAccepted", (data) => {
       toast.success(`${data.friendName} accepted your challenge!`);
-    });
-    socket.on("connect_error", (err) => {
-      console.error("Connection error:", {
-        message: err.message,
-        type: err.type,
-        stack: err.stack,
-      });
-      toast.error(`Realtime connection failed: ${err.message}`);
     });
 
     return () => {
