@@ -16,6 +16,7 @@ import Notifications from "./Notifications";
 import Profile from "./Profile";
 import ForgotPassword from "./ForgotPass";
 import Error from "./ErrorRoute";
+import { useParams } from "react-router-dom";
 
 function App() {
   const [count, setCount] = useState(0);

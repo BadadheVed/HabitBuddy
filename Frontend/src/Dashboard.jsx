@@ -22,6 +22,7 @@ import jwtDecode from "jwt-decode";
 import { Link, useNavigate } from "react-router-dom";
 import { LineChartIcon } from "lucide-react";
 import axios from "axios";
+import { useParams } from "react-router-dom";
 
 const Dashboard = () => {
   // const [darkMode, setDarkMode] = useState(false);
@@ -181,7 +182,7 @@ const Dashboard = () => {
                 />
                 <span className="slider" />
               </label>
-              <Link to="/dashboard/:name/notifications">
+              <Link to={`/dashboard/${name}/notifications`}>
                 <div className="relative">
                   <button
                     className={`p-2 rounded-full ${
@@ -197,7 +198,7 @@ const Dashboard = () => {
                   )}
                 </div>
               </Link>
-              <Link to={"/dashboard/:name/profile"}>
+              <Link to={`/dashboard/${name}/profile`}>
                 <div className="relative">
                   <button
                     className={`p-2 rounded-full ${
@@ -265,7 +266,7 @@ const Dashboard = () => {
                 group
               `}
             >
-              <Link to="/dashboard/:name/add">
+              <Link to={`/dashboard/${name}/profile`}>
                 <div className="h-full flex flex-col items-center justify-center">
                   <LineChartIcon
                     className={`w-12 h-12 ${
@@ -294,7 +295,7 @@ const Dashboard = () => {
             </div>
 
             {/* Tile 2 - My Activities */}
-            <Link to="/dashboard/:name/activities">
+            <Link to={`/dashboard/${name}/activities`}>
               <div
                 className={`
                 aspect-square
@@ -337,7 +338,7 @@ const Dashboard = () => {
             </Link>
 
             {/* Tile 3 - Add a Friend */}
-            <Link to="/dashboard/:name/add-friend">
+            <Link to={`/dashboard/${name}/add-friend`}>
               <div
                 className={`
                 aspect-square
@@ -380,7 +381,7 @@ const Dashboard = () => {
             </Link>
 
             {/* Bottom Row */}
-            <Link to="/dashboard/:name/challenge">
+            <Link to={`/dashboard/${name}/challenge`}>
               <div
                 className={`
               aspect-square
@@ -439,7 +440,7 @@ const Dashboard = () => {
               group
             `}
             >
-              <Link to="/dashboard/:name/heatmap">
+              <Link to={`/dashboard/${name}/heatmap`}>
                 <div className="h-full flex flex-col items-center justify-center">
                   <LineChart
                     className={`w-12 h-12 ${
