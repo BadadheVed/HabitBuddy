@@ -60,7 +60,7 @@ function Notifications() {
     }
 
     try {
-      const decoded = jwtDecode.jwtDecode(token);
+      const decoded = jwtDecode(token);
       setUserName(decoded.name || "User");
       fetchFriendRequests();
       fetchChallenges();
